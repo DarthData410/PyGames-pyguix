@@ -67,27 +67,27 @@ Project started in: 12/2022
 
 # pyguix current structure:
 3. Breakdown of structure:
-        PyGames-pyguix:
-                -> pyguix
-                        -> __utils__
-                                -> __help__.py
-                        -> ui
-                                -> context
-                                        -> PopupMenu_default.json
-                                        -> PopupMenu_sprites.json
-                                -> themes
-                                        -> MessageBox_blue.json
-                                        -> MessageBox_default.json
-                                        -> MessageBox_green.json
-                                        -> MessageBox_orange.json
-                                        -> MessageBox_red.json
-                                -> elements.py
-                -> LICENSE
-                -> messagebox_examples_wnotes.py
-                -> messagebox_simple_call.py
-                -> popup_testing.py (IN DEV)
-                -> README.md
-                -> TreeSprite.gif
+    1. PyGames-pyguix:
+        1. -> pyguix
+            1. -> __utils__
+                1. -> __help__.py
+            2. -> ui
+                1. -> context
+                    1. -> PopupMenu_default.json
+                    2. -> PopupMenu_sprites.json
+                2. -> themes
+                    1. -> MessageBox_blue.json
+                    2. -> MessageBox_default.json
+                    3. -> MessageBox_green.json
+                    4. -> MessageBox_orange.json
+                    5. -> MessageBox_red.json
+                3. -> elements.py
+        2. -> LICENSE
+        3. -> messagebox_examples_wnotes.py
+        4. -> messagebox_simple_call.py
+        5. -> popup_testing.py (IN DEV)
+        6. -> README.md
+        7. -> TreeSprite.gif
 
 # pyguix deployment
 4. (NOTE: DEPLOYMENT SECTION AND PIP INSTALL SLATED FOR DEVELOPMENT. CLONE REPO AND USE AS YOU DESIRE AND AT YOUR OWN RISK. REFER TO LICENSE FILE FOR FURTHER DETAILS.) 
