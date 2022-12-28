@@ -54,16 +54,16 @@ Project started in: 12/2022
 
 # pyguix.ui.elements.PopupMenu: (IN DEVELOPMENT)
 2. pyguix.ui.elements.PopupMenu(pygame.sprite.Sprite) pygame message box user interface class.
-    a. This class is currently in DEVELOPMENT, and therefore not ready for use.
-    b. Custom pyguix.ui.context.*.json context files to define PopupMenu's, MenuItems and there Actions currently in DEVELOPMENT, and therefore not ready for use. (__utils__.__help__.PopupMenuContext(context))
+    1. This class is currently in DEVELOPMENT, and therefore not ready for use.
+    2. Custom pyguix.ui.context.*.json context files to define PopupMenu's, MenuItems and there Actions currently in DEVELOPMENT, and therefore not ready for use. (__utils__.__help__.PopupMenuContext(context))
 
 # pyguix.ui.elements.PopupMenuItem: (IN DEVELOPMENT)
 3. pyguix.ui.elements.PopupMenuItem(pygame.Surface) surface interface class used by PopupMenu.
-    a. This class is currently in DEVELOPMENT, and therefore not ready for use.
+    1. This class is currently in DEVELOPMENT, and therefore not ready for use.
 
 # pyguix.ui.elements.PopupMenuActions: (IN DEVELOPMENT)
 4. pyguix.ui.elements.PopupMenuActions(object) class used with PopupMenu and __utils__.__help__.PopupMenuContext to define PopupMenu's, MenuItems and actions from user interaction.
-    a. This class is currently in DEVELOPMENT, and therefore not ready for use.
+    1. This class is currently in DEVELOPMENT, and therefore not ready for use.
 
 # pyguix current structure:
 3. Breakdown of structure:
@@ -94,16 +94,16 @@ Project started in: 12/2022
 
 # pyguix planned development & notes:
 5. Upcoming Development:
-    a. General elements / task:
+    1. General elements / task:
         1. Merge of JSON theme files, to allow single color/font theme across multiple or specific ui class instances.
-    b. UI elements slated for development:
+    2. UI elements slated for development:
         1. PopupMenu(pygame.sprite.Sprite) (IN DEV)
-            a. PopupMenuItem(pygame.Surface) (IN DEV)
-            b. PopupMenuActions(object) (IN DEV)
+            1. PopupMenuItem(pygame.Surface) (IN DEV)
+            2. PopupMenuActions(object) (IN DEV)
         2. GameOptions(pygame.sprite.Sprite)
         3. GameScene(pygame.Surface)
-    c. Deployment / install:
+    3. Deployment / install:
         1. Establish a 'pip install' for pyguix, create and test
-            a. Test for *nix OS
-            b. Test for Win OS
-            c. Test for MacOS
+            1. Test for *nix OS
+            2. Test for Win OS
+            3. Test for MacOS
