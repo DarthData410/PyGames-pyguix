@@ -1,11 +1,12 @@
 # PyGames-pyguix
 # PYGame User Interface eXtreme (PYGUIX)
-# By: J. Brandon George | darth.data410@gmail.com | twitter: @PyFryDay
-# license found @: PyGames-pyguix/LICENSE (Apache License Version 2.0 Janurary 2004)
-# Project started in: 12/2022
+By: J. Brandon George | darth.data410@gmail.com | twitter: @PyFryDay
+license found @: PyGames-pyguix/LICENSE (Apache License Version 2.0 Janurary 2004)
+Project started in: 12/2022
 
 # pyguix.ui.elements.MessageBox:
 1. pyguix.ui.elements.MessageBox(pygame.sprite.Sprite) pygame message box user interface class. 
+    
     a. Simple implementation:
 
         import pygame #<---NOTE: must import pygame
@@ -26,27 +27,30 @@
             print(msgbox.clicked()) #<---NOTE: will print 'OK' since default button(s) of 'OK' used with above example.
     
     # MessageBox class variable details
-    b. MessageBox class implementation variable details:
-        1. window = pygame.display(Surface)[REQUIRED]
-        2. message_text = (str) [default=ut.MSGBOX_TXT]
-        3. title = (str) [default=ut.MSGBOX_TXT]
-        4. buttons = (tuple(str,)) [default=(ut.MSGBOX_TXT,)]
-        5. width = (int) [default=ut.MSGBOX_WIDTH]
-        6. height = (int) [default=ut.MSGBOX_HEIGHT]
-        7. event_list = (list[pygame.event.Event]) [default=None]
-        8. theme = (str) [default=ut.MSGBOX_DEFAULT_JSONTHEME]
-        9. rg = (pygame.sprite.RenderUpdates()) [default=None] 
+    b. details:
+    1. window = pygame.display(Surface)[REQUIRED]
+    2. message_text = (str) [default=ut.MSGBOX_TXT]
+    3. title = (str) [default=ut.MSGBOX_TXT]
+    4. buttons = (tuple(str,)) [default=(ut.MSGBOX_TXT,)]
+    5. width = (int) [default=ut.MSGBOX_WIDTH]
+    6. height = (int) [default=ut.MSGBOX_HEIGHT]
+    7. event_list = (list[pygame.event.Event]) [default=None]
+    8. theme = (str) [default=ut.MSGBOX_DEFAULT_JSONTHEME]
+    9. rg = (pygame.sprite.RenderUpdates()) [default=None] 
             *NOTE: if passed in value is of type(pygame.sprite.RenderUpdates()) is detected then this is used for rendering MessageBox to display. Otherwise will create and use an intrenal pygame.sprite.RenderUpdates() group.
      
     c. pyguix.ui.elements.py = location of MessageBox class defition
+    
     d. pyguix.__utils__.__help__.py = all constants, dataclasses, theme classes, theme base class, utility source code / class used as 'helper' to elements.py
+    
     e. Further example implementions found in pygames-pyguix/messagebox_simple_call.py
+    
     f. More detailed examples and testing found in pygames-pyguix/messagebox_examples_wnotes.py
 
     # Custom MessageBox JSON Theme File Creation:
     g. Custom JSON file themes can be easily created. Select an existing *.json file, copy it, make changes and give it a unique name. Save it in the pyguix.ui.themes folder. (ie: select MessageBox_default.json, make changes and save as MessageBox_(themename).json).
-        a. Implementation of new JSON theme is easy, simply pass in as part of creating a new instance of a ui.(element), like ui.MessageBox(theme="MessageBox_blue.json").
-        b. If JSON theme file passed in can be found in pyguix.ui.themes and is valid per ui.(element)Theme class, then theme will be applied. [ie: When passed in for ui.MessageBox(theme="MessagBox_blue.json"), the MessageBoxTheme class, found in pyguix.__utils__.__help__.py is employed in loading the pyguix.ui.elements.MessageBox class, and validates the passed in JSON theme. If ANY part of validation fails, the MessageBoxTheme class will notify in terminal, and revert to constant MSGBOX_DEFAULT_JSONTHEME provided value for JSON theme file to load.]
+    1. Implementation of new JSON theme is easy, simply pass in as part of creating a new instance of a ui.(element), like ui.MessageBox(theme="MessageBox_blue.json").
+    2. If JSON theme file passed in can be found in pyguix.ui.themes and is valid per ui.(element)Theme class, then theme will be applied. [ie: When passed in for ui.MessageBox(theme="MessagBox_blue.json"), the MessageBoxTheme class, found in pyguix.__utils__.__help__.py is employed in loading the pyguix.ui.elements.MessageBox class, and validates the passed in JSON theme. If ANY part of validation fails, the MessageBoxTheme class will notify in terminal, and revert to constant MSGBOX_DEFAULT_JSONTHEME provided value for JSON theme file to load.]
 
 # pyguix.ui.elements.PopupMenu: (IN DEVELOPMENT)
 2. pyguix.ui.elements.PopupMenu(pygame.sprite.Sprite) pygame message box user interface class.
