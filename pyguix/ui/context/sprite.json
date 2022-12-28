@@ -1,0 +1,35 @@
+{
+    "PopupMenu": {
+        "details": {
+            "actionclass": "SpritePopupMenuActions"
+        },
+        "dimensions":{
+            "width": 100,
+            "height": 50,
+            "radius": 0
+        },
+        "menuitems":{
+            "cut":{
+                "popupmenuitem":{
+                    "text": "Cut Sprite",
+                    "type": 0,
+                    "action": "sprite_cut"
+                }
+            },
+            "sep1":{
+                "popupmenuitem":{
+                    "text": "[&SEP]",
+                    "type": 1,
+                    "action": "[&SEP]"
+                }
+            },
+            "paste":{
+                "popupmenuitem":{
+                    "text": "Paste Sprite",
+                    "type": 0,
+                    "action": "sprite_paste"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,28 @@
+{
+    "PopupMenu": {
+        "details": {
+            "actionclass": "SpritePopupMenuActions"
+        },
+        "dimensions":{
+            "width": 100,
+            "height": 50,
+            "radius": 0
+        },
+        "menuitems":{
+            "actionone":{
+                "popupmenuitem":{
+                    "text": "action one",
+                    "type": 0,
+                    "action": "menuitem_action_one"
+                }
+            },
+            "actiontwo":{
+                "popupmenuitem":{
+                    "text": "action two",
+                    "type": 0,
+                    "action": "menuitem_action_one"
+                }
+            }
+        }
+    }
+}

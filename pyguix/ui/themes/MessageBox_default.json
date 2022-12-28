@@ -1,0 +1,92 @@
+{
+    "MessageBox":
+    {
+        "variables":{
+            "title_max": 0.09,
+            "message_max": 0.12,
+            "font_size": 18,
+            "outline_buffer": 4
+
+        },
+        "colors":{
+            "default":{
+                "color":{
+                    "RGB": [58,55,53]
+                }
+            },
+            "title":{
+                "color":{
+                    "RGB": [36,33,30]
+                }
+             },
+            "text":{
+                "color":{
+                    "RGB": [220,220,200]
+                }
+             },
+            "button":{
+                "color":{
+                    "RGB": [110,108,102]
+                }
+             },
+            "outline":{
+                "color":{
+                    "RGB": [42,41,40]
+                }
+             },
+            "title_outline":{
+                "color":{
+                    "RGB": [30,29,28]
+                }
+             },
+            "button_hover":{
+                "color":{
+                    "RGB": [150,148,146]
+                }
+             },
+            "button_hover_text":{
+                "color":{
+                    "RGB": [240,220,110]
+                }
+             }
+        },
+        "title":{
+            "dimensions":{
+                "width": 260,
+                "height": 34,
+                "radius": 0
+            },
+            "outline_buffer": 2,
+            "font_size": 22,
+            "text_upcase": 0
+        },
+        "cancel_button":{
+            "surface":{
+                "dimensions":{
+                    "width": 30,
+                    "height": 30,
+                    "radius": 0
+                }
+            },
+            "circle":{
+                "dimensions":{
+                    "width": 20,
+                    "height": 20,
+                    "radius": 10
+                },
+                "buffer": 22,
+                "default_text": "X"
+            }
+        },
+        "buttons":{
+            "dimensions":{
+                "width": 85,
+                "height": 25,
+                "radius": 0
+            },
+            "buffer": 7,
+            "return_button": 0,
+            "default_text": "OK"
+        }
+    }
+}
