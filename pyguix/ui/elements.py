@@ -2,7 +2,7 @@
 # made with: pygame 2.1.2 (SDL 2.0.16, Python 3.10.6)
 # using: vscode ide
 # By: J. Brandon George | darth.data410@gmail.com | twitter: @PyFryDay
-# Copyright 2022 J. Brandon george
+# Copyright 2022 J. Brandon George
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -20,6 +20,20 @@ import pygame
 import pyguix.__utils__.__help__ as utils
 
 uth = utils.helper()
+# NOTE: When an action class is created, the base scope class adds its targetclasses as keys
+# to the following dict(), with a value of the action class instance to use
+# TODO: Need to finlize elements.init and what is actually done. 
+reg_json2pmas = uth.init_reg_json2pmas()
+reg_pmas = uth.init_reg_pmas()
+reg_tc2pma = dict()
+
+spritecache = dict()
+def set_spritecache(v=None):
+    """ When v=Sprite, then passed in Sprite is acted upon for executing PopupMenuActions class. \n call set_spritecache() to clear cache. """
+    spritecache[utils.POPUP_ACT]=v
+set_spritecache()
+
+# ******************************************************************************************
 
 # Classes:
 class MessageBox(pygame.sprite.Sprite):
@@ -445,23 +459,81 @@ class MessageBox(pygame.sprite.Sprite):
 class PopupMenuActions(object):
     """ pyguix.ui.elements.PopupMenuActions class. Meant to be subed and paired with context (*.json) file for menu item actions. """
 
-    def __init__(self,context,target=None):
+    def __init__(self):
+        
+        # TODO: Finalize a 'safe' method for checking full type as str vs. loaded json2pmans mapping dict().
+        self.__context_name__ = reg_json2pmas[str("%s" % type(self))] #context
 
-        self.__context_name__ = context
         self.__context__ = self.__init_context__()
-        self.__target__ = target
+        self.__target__ = ""
+        self.__target_classes__ = self.__init_target_classes__()
+        self.__funcmap__ = self.__init_funcmap__()
 
         if not self.__is_valid__():
             errmsg = ("Invalid JSON context (%s) supplied mapping with PopupMenuActions (%s) class. [pyguix]" % (self.get_context_name(),self.get_context().get_action_class()))
-            raise LookupError(errmsg)
-    
+            raise LookupError(errmsg)    
+     
+        # TODO: Need to finalize context and contextof vars and how these are used through instance.
+        if reg_pmas[self.get_context().get_action_class()] == None:
+            reg_pmas[self.get_context().get_action_class()] = self
+            for t in self.get_target_classes():
+                if not reg_tc2pma.__contains__(t):
+                    reg_tc2pma[t] = self.get_context().get_action_class()
+                else:
+                    raise LookupError(("Targetclass (%s) listed multiple times. Look at JSON Context files. Current file %s [pyguix]" % (t,self.get_context_name())))
+
+        self.__act_pmi__ = None
+
     def __is_valid__(self) -> bool:
-        """ Base returns false. Overide with logic that checks context with instance name as action, including each action existing in instance class. True if pass, ANY fail False. """
-        return False
+        """ base is_valid checks """
+        ret = self.__check_valid_class__()
+        ret = ret and self.__check_valid_functions__()
+        return ret
     
     def __init_context__(self) -> utils.PopupMenuContext:
         return utils.PopupMenuContext(self.get_context_name())
     
+    def __init_target_classes__(self) -> tuple:
+        return self.get_context().get_target_classes()
+    
+    def __init_funcmap__(self) -> dict:
+        ret = dict()
+        for mi in self.get_context().get_menuitems():
+            if mi.type == utils.PopupMenuItemType.Action:
+                ret[mi.identity] = mi.action
+        return ret
+
+    def __add_function__(self,k,v):
+        self.__functions__[k] = v
+
+    def __check_valid_functions__(self) -> bool:
+        ret = True
+        for mi in self.get_funcmap():
+            func = self.get_funcmap().get(mi)
+            found = False
+            for s in self.__dir__():
+                if func == s:
+                    found = True
+            ret = ret and found
+            if not found:
+                raise LookupError(
+                    ("Bad match between JSON context file (%s) mapping and action class (%s) [pyguix] \n Issue with function (%s) missing from action class. [pyguix]" % (
+                        self.get_context_name(),
+                        self.get_context().get_action_class(),
+                        func)
+                )
+            )
+        return ret
+    
+    def __check_valid_class__(self) -> bool:
+        ret = False
+        if ("%s" % type(self)) == self.get_context().get_action_class():
+        #if self.__class__.__name__ == self.get_context().get_action_class():
+            ret = True
+        if not ret:
+            raise LookupError("JSON context file (%s) with name %s & %s class don't match. Check the JSON file. [pyguix]" % (self.get_context_name(),self.get_context().get_action_class(),self.__class__.__name__))
+        return ret
+
     def get_isvalid(self) -> bool:
         return self.__isvalid__
     
@@ -476,13 +548,26 @@ class PopupMenuActions(object):
     
     def get_target(self):
         return self.__target__
+    
+    def get_target_classes(self):
+        return self.__target_classes__
+    
+    def get_funcmap(self):
+        return self.__funcmap__
+    
+    def get_active_menuitem(self):
+        return self.__act_pmi__
+
+    def execute(self): # TODO: Need to finalize
+        ex = self.get_funcmap().get(self.__act_pmi__.get_identity())
+        eval(("self.%s()" % (ex)))
 
 class PopupMenuItem(pygame.Surface):
     """ pyguix.ui.elements.PopupMenuItem ui class """
 
     def __init__(self,window,dataclass,pos=(0,0),dims=(0,0)):
 
-        super().__init__(size=dims) #(150,15)) # TODO need to pass in
+        super().__init__(size=dims)
 
         self.__dataclass__ = dataclass
         self.__init_dimensions(window,pos,dims)
@@ -493,8 +578,8 @@ class PopupMenuItem(pygame.Surface):
         
     def __init_dimensions(self,window,pos,dims):
         self.window = window
-        self.width = dims[0]#150
-        self.height = dims[1]#15
+        self.width = dims[0]
+        self.height = dims[1]
         self.w_width,self.w_height = window.get_size()
         if self.__get_pmi__().type == utils.PopupMenuItemType.Separator:
             i=0
@@ -511,8 +596,8 @@ class PopupMenuItem(pygame.Surface):
         return self.__dataclass__
 
     def __init_item__(self) -> pygame.Surface:
-        f = pygame.font.Font(None,18)
-        text_surface = f.render(self.get_text(), True, (230,220,210)) 
+        f = pygame.font.Font(None,18) # TODO: Finalize font from theme JSON
+        text_surface = f.render(self.get_text(), True, (230,220,210)) # TODO: Finalize text color from theme JSON
         return text_surface
     
     def get_text(self) -> str:
@@ -533,19 +618,27 @@ class PopupMenu(pygame.sprite.Sprite):
 
         super().__init__()
 
+        self.tpma = None
+
         if type(rg) == type(pygame.sprite.RenderUpdates()):
             self.rg = rg
         else:
             self.rg = pygame.sprite.RenderUpdates()
-        
-        self.__contextof__ = self.__get_contextof__(contextof)
-        if self.__contextof__ != None:
-            self.__contextof_pum__ = self.__contextof__.popup_context # NOTE: testing var added to sprite.
+
+        # determine if ANY object class was clicked on.:
+        # NOTE: Get class for popup mouse pos collide context of:
+        if spritecache[utils.POPUP_ACT] != None:
+            self.__contextof__ = spritecache[utils.POPUP_ACT]  
         else:
-            self.__contextof_pum__ = context
+            self.__contextof__ = self.__get_contextof__()
         
+        self.__contextof_pum__ = self.__init_context_of__(self.__contextof__)
+
         # Init PopupMenu context JSON file:
         self.__context__ = self.__init_popup_context__(self.__contextof_pum__) #context)
+        if self.__context__.get_action_class() == "" or self.__context__.get_action_class() == None:
+            # DO NOT RENDER POPUP
+            return
 
         # Init MessageBox dimensions and variables:
         self.__init_dimensions__(window)
@@ -557,24 +650,38 @@ class PopupMenu(pygame.sprite.Sprite):
     def __init_popup_context__(self,context) -> utils.PopupMenuContext:
         return utils.PopupMenuContext(context)
 
-    def __get_contextof__(self,contextof): 
-        # NOTE: Based on passed in RenderUpdates group, grab Sprite (if any) that collide with mouse, get_pos()
-
+    def __init_context_of__(self,cat):
+        tos = ("%s" % type(cat))
         ret = None
-        if contextof != None:
-            ret = contextof
-        else:
-            for s in self.rg:
-                if s.rect.collidepoint(pygame.mouse.get_pos()):
-                    ret = s
+
+        if cat != None:
+            # NOTE: Following tos must be a perfect match <class '(module).(class)'> 
+            # (ie: <class '__main__.SomeSpriteClass'>)
+            if reg_tc2pma.__contains__(tos): 
+                    tos_pma = reg_pmas[reg_tc2pma[tos]] 
+                    self.tpma = tos_pma
+                    ret = tos_pma.get_context_name()
+                    #break
+
+        if ret == None:
+            ret = utils.POPUP_DEFAULT_JSONCONTEXT
+        
+        return ret
+    
+    def __get_contextof__(self): 
+        # NOTE: Based on passed in RenderUpdates group, grab Sprite (if any) that collide with pygame.mouse.get_pos()
+        ret = None
+        for s in self.rg:
+            if s.rect.collidepoint(pygame.mouse.get_pos()):
+                ret = s
         return ret
 
     def __init_dimensions__(self,window):
         self.window = window
         self.dims = self.__get_context__().get_dimensions() # NOTE: Now part of PopupMenu_*.json context file. 
-        self.width = self.dims.width #150
+        self.width = self.dims.width
         self.box_outline_width = self.width + 4 # TODO: Remove hardcoded buffer
-        self.height = self.dims.height #75
+        self.height = self.dims.height
         self.box_outline_height = self.height + 4 # TODO: Remove hardcoded buffer
         self.w_width,self.w_height = window.get_size()
         self.pmis=[]
@@ -624,7 +731,7 @@ class PopupMenu(pygame.sprite.Sprite):
             window=self.window,
             dataclass=dc,
             pos=pos,
-            dims=(self.dims.width,15) # TODO: Need to finalize dimensions of menu items.
+            dims=(self.dims.width,15) # TODO: Need to finalize dimensions of menu items vs. hardcoded height value
         )
         return pmi
     
@@ -645,7 +752,7 @@ class PopupMenu(pygame.sprite.Sprite):
             )
             p2 = self.__get_button__(pos2,mi)
             pis2 = pygame.Surface(size=(self.dims.width,15)) # TODO: Need to finalize dimensions of menu items.
-            pis2.fill((100,100,100))
+            pis2.fill((100,100,100)) # TODO: Finalize color theme apply.
             pis2.blit(p2.image,p2.image.get_rect())
             self.box_outline_surf.blit(pis2,pis2.get_rect(topleft=(
                         pis2.get_rect().x,(pis2.get_rect().y+((15+5)*miorder)) #<-NOTE: [B] HERE IS B! + BUFFER ******************
@@ -676,9 +783,17 @@ class PopupMenu(pygame.sprite.Sprite):
                                 p.contextof = self.__contextof__
                                 self.__clicked__ = p
                                 ret = p
+                                
+                                # NOTE: Must remove self from passed in render group.
+                                self.remove(self.rg)
+                                # NOTE: This will use the target PopupMenuAction instance and call to 
+                                # execute() the active PopupMenuItem related action:
+                                if self.tpma != None:
+                                    self.tpma.__act_pmi__ = p
+                                    self.tpma.execute()
+                                    
 
         return ret
-
 # NOTE: End PopupMenu Section
 
                             

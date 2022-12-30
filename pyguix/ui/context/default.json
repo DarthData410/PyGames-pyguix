@@ -1,28 +1,16 @@
 {
     "PopupMenu": {
         "details": {
-            "actionclass": "SpritePopupMenuActions"
+            "actionclass": "",
+            "targetclasses": "" 
         },
         "dimensions":{
-            "width": 100,
-            "height": 50,
+            "width": 0,
+            "height": 0,
             "radius": 0
         },
         "menuitems":{
-            "actionone":{
-                "popupmenuitem":{
-                    "text": "action one",
-                    "type": 0,
-                    "action": "menuitem_action_one"
-                }
-            },
-            "actiontwo":{
-                "popupmenuitem":{
-                    "text": "action two",
-                    "type": 0,
-                    "action": "menuitem_action_one"
-                }
-            }
-        }
+        },
+        "notes": "When default is left blank, right click when PopupMenu instance is active will not render or 'popup'"
     }
 }

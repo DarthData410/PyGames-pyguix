@@ -1,19 +1,20 @@
 {
     "PopupMenu": {
         "details": {
-            "actionclass": "SpritePopupMenuActions"
+            "actionclass": "<class '__main__.SpriteInfo'>",
+            "targetclasses": ["<class '__main__.Tree'>"]
         },
         "dimensions":{
             "width": 100,
-            "height": 50,
+            "height": 100,
             "radius": 0
         },
         "menuitems":{
-            "cut":{
+            "info":{
                 "popupmenuitem":{
-                    "text": "Cut Sprite",
+                    "text": "Get Info",
                     "type": 0,
-                    "action": "sprite_cut"
+                    "action": "sprite_info"
                 }
             },
             "sep1":{
@@ -23,6 +24,13 @@
                     "action": "[&SEP]"
                 }
             },
+            "cut":{
+                "popupmenuitem":{
+                    "text": "Cut Sprite",
+                    "type": 0,
+                    "action": "sprite_cut"
+                }
+            },
             "paste":{
                 "popupmenuitem":{
                     "text": "Paste Sprite",
@@ -30,6 +38,7 @@
                     "action": "sprite_paste"
                 }
             }
-        }
+        },
+        "notes": "Copy and paste example PopupMenu. Read popup_examples_wnotes.py NOTE tags for details."
     }
 }

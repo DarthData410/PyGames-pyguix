@@ -1,0 +1,23 @@
+{
+    "PopupMenu": {
+        "details": {
+            "actionclass": "<class '__main__.BoatSpriteActions'>",
+            "targetclasses": ["<class '__main__.Boat'>"]
+        },
+        "dimensions":{
+            "width": 150,
+            "height": 50,
+            "radius": 0
+        },
+        "menuitems":{
+            "info":{
+                "popupmenuitem":{
+                    "text": "Get Sprite Information",
+                    "type": 0,
+                    "action": "info"
+                }
+            }
+        },
+        "notes": "Copy and paste example PopupMenu. Read popup_examples_wnotes.py NOTE tags for details."
+    }
+}

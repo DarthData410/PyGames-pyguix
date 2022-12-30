@@ -1,5 +1,4 @@
-# PyGames-pyguix
-# PYGame User Interface eXtreme (PYGUIX)
+# PyGames-pyguix (PYGame User Interface eXtreme (PYGUIX))
 By: J. Brandon George | darth.data410@gmail.com | twitter: @PyFryDay
 license found @: PyGames-pyguix/LICENSE (Apache License Version 2.0 Janurary 2004)
 Project started in: 12/2022
@@ -64,30 +63,6 @@ Project started in: 12/2022
 # pyguix.ui.elements.PopupMenuActions: (IN DEVELOPMENT)
 4. pyguix.ui.elements.PopupMenuActions(object) class used with PopupMenu and __utils__.__help__.PopupMenuContext to define PopupMenu's, MenuItems and actions from user interaction.
     1. This class is currently in DEVELOPMENT, and therefore not ready for use.
-
-# pyguix current structure:
-3. Breakdown of structure:
-    1. PyGames-pyguix:
-        1. -> pyguix
-            1. -> __utils__
-                1. -> __help__.py
-            2. -> ui
-                1. -> context
-                    1. -> PopupMenu_default.json
-                    2. -> PopupMenu_sprites.json
-                2. -> themes
-                    1. -> MessageBox_blue.json
-                    2. -> MessageBox_default.json
-                    3. -> MessageBox_green.json
-                    4. -> MessageBox_orange.json
-                    5. -> MessageBox_red.json
-                3. -> elements.py
-        2. -> LICENSE
-        3. -> messagebox_examples_wnotes.py
-        4. -> messagebox_simple_call.py
-        5. -> popup_testing.py (IN DEV)
-        6. -> README.md
-        7. -> TreeSprite.gif
 
 # pyguix deployment
 4. (NOTE: DEPLOYMENT SECTION AND PIP INSTALL SLATED FOR DEVELOPMENT. CLONE REPO AND USE AS YOU DESIRE AND AT YOUR OWN RISK. REFER TO LICENSE FILE FOR FURTHER DETAILS.) 

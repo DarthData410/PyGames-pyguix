@@ -2,7 +2,7 @@
 # made with: pygame 2.1.2 (SDL 2.0.16, Python 3.10.6)
 # using: vscode ide
 # By: J. Brandon George | darth.data410@gmail.com | twitter: @PyFryDay
-# Copyright 2022 J. Brandon george
+# Copyright 2022 J. Brandon George
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.

@@ -2,7 +2,7 @@
 # made with: pygame 2.1.2 (SDL 2.0.16, Python 3.10.6)
 # using: vscode ide
 # By: J. Brandon George | darth.data410@gmail.com | twitter: @PyFryDay
-# Copyright 2022 J. Brandon george
+# Copyright 2022 J. Brandon George
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ POPUP_SEPCHAR="[&SEP]"
 POPUP_SEPTEXT="-"
 POPUP_DEFAULT_JSONCONTEXT='default.json'
 POPUP_ISSUES_MSG='Issues loading supplied JSON PopupMenu context file. Loading default.'
+POPUP_ACT="cat"
 
 # Enums:
 PopupMenuItemType = enum.IntEnum('PopupMenuItemType','Action Separator')
@@ -192,6 +193,12 @@ class PopupMenuItem:
         )
         return ret
 
+@dc.dataclass
+class PopupMenuVars:
+    regpmas: dict
+    regtc2pma: dict
+    currenttarget: object = object()
+
 # Classes:
 class jsonfile:
     
@@ -206,13 +213,17 @@ class jsonfile:
 
     def __init__jsontheme_file__(self) -> bytes:
         """ internal function that read the path of the themes lib, and loads the passed in JSON theme file. (theme_name) """
-        self.__path__ = self.helper.safe_path(self.__file_path__) #th.__path__.__str__())
+        self.__path__ = self.helper.safe_path(self.__file_path__) 
         self.__file__ = ("%s/%s"  % (self.get_path(),self.__file__))
         # TODO: (12/25/22) - Add logic for checking for targeting {theme}.json file:
-        f = io.FileIO(
-            file=self.__file__,
-            mode='r'
-        )
+        try:
+            f = io.FileIO(
+                file=self.__file__,
+                mode='r'
+            )
+        except:
+            raise LookupError(("File missing %s [pyguix.__utils__.__help__.jsonfile]" % self.__file__))
+        
         return f.readall() # read file to bytes object
     
     def __is_valid__(self) -> bool:
@@ -225,7 +236,7 @@ class jsonfile:
         if dict.__contains__(item):
             ret = True
         else:
-            print("Missing item: %s" % (item))
+            raise LookupError("Missing item: %s [pyguix.__utils__.__help__.jsonfile]" % (item))
         
         return ret
     
@@ -257,6 +268,7 @@ class PopupMenuContext(context):
         self.__pmd__ = self.get_dict().get("PopupMenu")
         self.__dets__ = self.__pmd__.get("details")
         self.__act_cls__ = self.__dets__.get("actionclass")
+        self.__tgtcls__ = self.__dets__.get("targetclasses")
         self.__dims__ = dimensions.new(self.__pmd__.get("dimensions"))
         self.__mis__ = self.__pmd__.get("menuitems")
         self.__mia__ = []
@@ -279,6 +291,8 @@ class PopupMenuContext(context):
         return self.__dims__
     def get_menuitems(self):
         return self.__mia__
+    def get_target_classes(self):
+        return self.__tgtcls__
     
 class MessageBoxTheme(theme):
 
@@ -338,3 +352,30 @@ class helper:
         ret = s.rstrip("']")
         ret = ret.lstrip("['")
         return ret
+    
+    # TODO: Clean up following seciton: ***********************
+    def init_reg_json2pmas(self) -> dict:
+        ret = dict()
+        jsonfiles = cx.get_json_files()
+        for f in jsonfiles:
+            pmc = PopupMenuContext(f)
+
+            if not ret.__contains__(pmc.get_action_class()):
+                ret[pmc.get_action_class()] = f
+        
+        return ret
+
+    
+    def init_reg_pmas(self) -> dict:
+
+        ret = dict()
+        # Load files in context:
+        jsonfiles = cx.get_json_files()
+        for f in jsonfiles:
+            pmc = PopupMenuContext(f)
+            
+            if not ret.__contains__(pmc.get_action_class()):
+                ret[pmc.get_action_class()] = None
+        
+        return ret
+    # NOTE: END TODO Clean up section *************************************
