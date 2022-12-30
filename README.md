@@ -39,8 +39,11 @@ Project started in: 12/2022
             *NOTE: if passed in value is of type(pygame.sprite.RenderUpdates()) is detected then this is used for rendering MessageBox to display. Otherwise will create and use an intrenal pygame.sprite.RenderUpdates() group.
      
     c. pyguix.ui.elements.py = location of MessageBox class defition
+    
     d. pyguix.__utils__.__help__.py = all constants, dataclasses, theme classes, theme base class, utility source code / class used as 'helper' to elements.py
+    
     e. Further example implementions found in pygames-pyguix/messagebox_simple_call.py
+    
     f. More detailed examples and testing found in pygames-pyguix/messagebox_examples_wnotes.py
 
     # Custom MessageBox JSON Theme File Creation:
