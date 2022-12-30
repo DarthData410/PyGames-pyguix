@@ -39,11 +39,8 @@ Project started in: 12/2022
             *NOTE: if passed in value is of type(pygame.sprite.RenderUpdates()) is detected then this is used for rendering MessageBox to display. Otherwise will create and use an intrenal pygame.sprite.RenderUpdates() group.
      
     c. pyguix.ui.elements.py = location of MessageBox class defition
-    
     d. pyguix.__utils__.__help__.py = all constants, dataclasses, theme classes, theme base class, utility source code / class used as 'helper' to elements.py
-    
     e. Further example implementions found in pygames-pyguix/messagebox_simple_call.py
-    
     f. More detailed examples and testing found in pygames-pyguix/messagebox_examples_wnotes.py
 
     # Custom MessageBox JSON Theme File Creation:
@@ -53,16 +50,18 @@ Project started in: 12/2022
 
 # pyguix.ui.elements.PopupMenu: (IN DEVELOPMENT)
 2. pyguix.ui.elements.PopupMenu(pygame.sprite.Sprite) pygame message box user interface class.
-    1. This class is currently in DEVELOPMENT, and therefore not ready for use.
-    2. Custom pyguix.ui.context.*.json context files to define PopupMenu's, MenuItems and there Actions currently in DEVELOPMENT, and therefore not ready for use. (__utils__.__help__.PopupMenuContext(context))
+    1. This class is currently in DEVELOPMENT
+    2. Review popup_examples_wnotes.py for how to use PopupMenu element. 
+    3. Currently color theme application is missing, however easy, and flexible PopupMenus with context related to specific Sprites / Sprite classes are now possible, with little code to enable.
+    4. Custom pyguix.ui.context.*.json context files to define PopupMenu's, MenuItems and Actions. (__utils__.__help__.PopupMenuContext(context))
 
 # pyguix.ui.elements.PopupMenuItem: (IN DEVELOPMENT)
 3. pyguix.ui.elements.PopupMenuItem(pygame.Surface) surface interface class used by PopupMenu.
-    1. This class is currently in DEVELOPMENT, and therefore not ready for use.
+    1. Refer to popup_examples_wnotes.py.
 
 # pyguix.ui.elements.PopupMenuActions: (IN DEVELOPMENT)
 4. pyguix.ui.elements.PopupMenuActions(object) class used with PopupMenu and __utils__.__help__.PopupMenuContext to define PopupMenu's, MenuItems and actions from user interaction.
-    1. This class is currently in DEVELOPMENT, and therefore not ready for use.
+    1. Refer to popup_examples_wnotes.py.
 
 # pyguix deployment
 4. (NOTE: DEPLOYMENT SECTION AND PIP INSTALL SLATED FOR DEVELOPMENT. CLONE REPO AND USE AS YOU DESIRE AND AT YOUR OWN RISK. REFER TO LICENSE FILE FOR FURTHER DETAILS.) 
@@ -70,7 +69,7 @@ Project started in: 12/2022
 # pyguix planned development & notes:
 5. Upcoming Development:
     1. General elements / task:
-        1. Merge of JSON theme files, to allow single color/font theme across multiple or specific ui class instances.
+        1. Finalize theme JSON files and applications across ui.elements (MessageBox, PopupMenu, PopupMenuItem(s), etc.)
     2. UI elements slated for development:
         1. PopupMenu(pygame.sprite.Sprite) (IN DEV)
             1. PopupMenuItem(pygame.Surface) (IN DEV)
