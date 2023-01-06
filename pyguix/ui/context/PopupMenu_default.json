@@ -4,11 +4,6 @@
             "actionclass": "",
             "targetclasses": "" 
         },
-        "dimensions":{
-            "width": 0,
-            "height": 0,
-            "radius": 0
-        },
         "menuitems":{
         },
         "notes": "When default is left blank, right click when PopupMenu instance is active will not render or 'popup'"

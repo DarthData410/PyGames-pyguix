@@ -16,7 +16,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-
 import pygame
 import pyguix.ui.elements as ui 
 
@@ -39,45 +38,31 @@ def run():
                 if event.key == pygame.K_m: # <- NOTE: Press 'M' key to launch message.
                     
                     #########################################
-                    # NOTE: Simple MessageBox example code, using MessageBox_default.json theme
-                    msgbox = ui.MessageBox(
+                    # NOTE: Most basic, self contained MessageBox instance possible:
+                    mb = ui.MessageBox(
                         window=window, 
-                        message_text="Simple MessageBox",
-                        title="Simple"
+                        event_list=pygame.event.get()
                     )
 
-                    # Operate upon MessageBox.wait() and perform some logic while waiting.:
-                    while msgbox.wait(event_list):
-                        event_list = pygame.event.get()
-
-                    print(msgbox.clicked())
-                    
-                    if msgbox.canceled():
-                        print("MessageBox instance was canceled.")
-
-                    window.fill((0,0,0))               
-                    #########################################
-
-                    #########################################
-                    # NOTE: Simple MessageBox example code, in 'self-contained' mode, 
-                    # passing event_list in at init() of instance.
-                    msgbox = ui.MessageBox(
-                        window=window,
-                        message_text="Simple contained example MessageBox",
-                        title="Simple Self Contained",
-                        width=300, # Expand width to show full message for example.
-                        event_list=pygame.event.get(),
-                        theme="MessageBox_orange.json" #<-NOTE: passing in custom JSON theme named: MessageBox_orange.json
-                    )
-
-                    if msgbox.canceled():
-                        print("MessageBox instance was canceled. (self-contained mode example)")
+                    # NOTE: Act upoon if the MessageBox was canceled, if not can act upon the .clicked() value.:
+                    if not mb.canceled():
+                        print(mb.clicked())
                     else:
-                        print(msgbox.clicked())
+                        print("You canceled the MessageBox instance.")
                     
-                    window.fill((0,0,0))
-                    ##########################################
+                    window.fill((0,0,0)) # NOTE: Simple clear of screen. Would have draw() logic, blit() in real game.
 
+                    # NOTE: Still basic MessageBox but passing in Title and Message to display:
+                    mb = ui.MessageBox(
+                        window=window,
+                        title="Simple Title",
+                        message_text="Some simple text message",
+                        event_list=pygame.event.get()
+                    )
+                    print(mb.clicked())
+
+                    window.fill((0,0,0))
+            
         pygame.display.update()
 
 if __name__ == '__main__':

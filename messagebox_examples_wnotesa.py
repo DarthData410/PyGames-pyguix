@@ -85,7 +85,7 @@ def run():
                         message_text=("You clicked: %s" % msgbox.clicked()),
                         title="information",
                         event_list=pygame.event.get(),
-                        theme="MessageBox_orange.json", #<-NOTE: using custom JSON theme file named MessageBox_orange.json
+                        theme="ex_orange.json", #<-NOTE: using custom JSON theme file named MessageBox_orange.json
                         rg=all #<-NOTE: pygame.sprite.RenderUpdates() group passed in for usage, vs. instance within class.
                     )
                     # NOTE: Remove instance of MessageBox class from all sprite groups.
@@ -108,7 +108,7 @@ def run():
                         message_text=("You clicked: %s" % msgbox2.clicked()),
                         title="information",
                         event_list=pygame.event.get(),
-                        theme="MessageBox_blue.json" #<-NOTE: using custom JSON theme file named MessageBox_blue.json
+                        theme="ex_blue.json" #<-NOTE: using custom JSON theme file named MessageBox_blue.json
                     )
                         
                     # NOTE: Simple print() of the msgbox.get_clicked() function.
@@ -126,7 +126,7 @@ def run():
                         message_text=("You clicked: %s" % msgbox.clicked()),
                         title="information",
                         event_list=pygame.event.get(),
-                        theme="MessageBox_red.json" #<-NOTE: using custom JSON theme file named MessageBox_blue.json
+                        theme="ex_red.json" #<-NOTE: using custom JSON theme file named MessageBox_blue.json
                     )
                         
                     # NOTE: Simple print() of the msgbox.get_clicked() function.
@@ -144,7 +144,7 @@ def run():
                         message_text=("You clicked: %s" % msgbox.clicked()),
                         title="information",
                         event_list=pygame.event.get(),
-                        theme="MessageBox_green.json" #<-NOTE: using custom JSON theme file named MessageBox_blue.json
+                        theme="ex_green.json" #<-NOTE: using custom JSON theme file named MessageBox_blue.json
                     )
                         
                     # NOTE: Simple print() of the msgbox.get_clicked() function.

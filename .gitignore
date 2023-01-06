@@ -5,3 +5,6 @@ pyguix/ui/__pycache__/elements.cpython-310.pyc
 pyguix/ui/context/__pycache__/__init__.cpython-310.pyc
 pyguix/ui/themes/__pycache__/__init__.cpython-310.pyc
 tryit.py
+pyguix/ui/settings/__pycache__/__init__.cpython-310.pyc
+test_settings.py
+eventtopichud_example_wnotes.py

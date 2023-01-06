@@ -22,6 +22,7 @@ import pyguix.ui.elements as ui
 
 # NOTE: ui.PopupMenuActions classes section:
 # NOTE: An example PopupMenuActions class, with three function. Mapped to context of sprite_info.json.
+
 class SpriteInfo(ui.PopupMenuActions):
     # NOTE: Simple function, prints PopupMenuItem details, as well as uses ui.MessageBox to show pmi/target sprite info:
     def sprite_info(self):
@@ -46,7 +47,7 @@ class SpriteInfo(ui.PopupMenuActions):
             title=("%s clicked" % pmi.get_text()),
             width=370,
             event_list=pygame.event.get(),
-            theme="MessageBox_red.json"
+            theme=self.theme
         )
         
         # NOTE: Added for refresh after pop-up menu is cleared.
@@ -58,38 +59,63 @@ class SpriteInfo(ui.PopupMenuActions):
             message_text = ("%s (x:%s,y:%s)" % (pmi.contextof,str(pmi.contextof.rect.centerx),str(pmi.contextof.rect.centery))),
             title="Sprite Info",
             width=350,
-            event_list=pygame.event.get()
+            event_list=pygame.event.get(),
+            theme=self.theme
         )
 
     # NOTE: define bound functions section:
     def sprite_cut(self):
-        """ EXAMPLE bound function, target of context supplied PopupMenu instance. 'Cut sprite from location.' """
+        #EXAMPLE bound function, target of context supplied PopupMenu instance. 'Cut sprite from location.' 
+        # *********************************************************************************************
+        # NOTE: 'Cut a Sprite' Steps for using globals, (ie: ui.spritecache()) as well as set_enabled()
+        # *********************************************************************************************
+        # STEP1: Get active menu item, via base class bound function
         pmi = self.get_active_menuitem()
+        # STEP2: Create a local variable from the active menu item, 'context of'
         s = pmi.contextof
-        self.copy_sprite = s
+        # STEP3: Remove the 'context of' Sprite from the targeted RenderUpdates Sprite group.
         s.remove(self.rg)
-        # TODO: keep active for 'cut' operation:
-        ui.set_spritecache(s)
+        # STEP4: Set the ui.spritecache() global variable
+        ui.spritecache(s)
+        # STEP5: Update what actions are enabled vs. not via base class bound function, set_enabled()
+        self.set_enabled('sprite_info',False)
+        self.set_enabled('sprite_cut',False)
+        self.set_enabled('sprite_paste')
+        # *********************************************************************************************
     
     def sprite_paste(self):
-        """ EXAMPLE bound function, target of context supplied PopupMenu instance. 'Paste sprite to location.' """
+        # EXAMPLE bound function, target of context supplied PopupMenu instance. 'Paste sprite to location.' 
+        # *********************************************************************************************
+        # NOTE: 'Paste a Sprite' Steps (ie: ui.spritecache()) as well as set_enabled()
+        # *********************************************************************************************
+        # STEP1: Get active menu item, via base class bound function
         pmi = self.get_active_menuitem()
+        # STEP2: Get target mouse position, where pointer will 'Paste' sprite.
         t = pmi.mouse_pos
-        self.copy_sprite.rect.centerx = t[0]
-        self.copy_sprite.rect.centery = t[1]
-        ret = self.copy_sprite
-        self.rg.add(ret)
-        # TODO: remove active target after 'paste' operation
-        ui.set_spritecache()
-    
-    def __init__(self,window,rg):
+        # STEP3: Call ui.spritecache() to get the current active target (cat)
+        s = ui.spritecache()
+        # STEP4: Set the rect.center(x,y) to mouse_pos(x,y)
+        s.rect.center = t
+        # STEP5: Add sprite to target RenderUpdates group 
+        self.rg.add(s)
+        # STEP6: Call to clear the global spritecache()
+        ui.clear_spritecache()
+        # STEP7: Update what actions are enabled vs. one's that are not. (Reverse order from sprite_cut)
+        self.set_enabled('sprite_paste',False)
+        self.set_enabled('sprite_cut')
+        self.set_enabled('sprite_info')
+        # *********************************************************************************************
+
+    def __init__(self,window,rg,theme="default.json"):
         # TODO: Finalize best way to pass in active display window and renderupdates group.
         # For now setting as below self.window,self.rg
         self.window = window
         self.rg = rg
+        self.theme = theme
         # NOTE: call to super to initialize class
         super().__init__()
-
+    
+# NOTE: A ui.PopupMenuActions instance that has a single function/action mapping for Boat sprite to show info.
 class BoatSpriteActions(ui.PopupMenuActions):
 
     def info(self):
@@ -103,17 +129,40 @@ class BoatSpriteActions(ui.PopupMenuActions):
             message_text = ("%s (x:%s,y:%s)" % (pmi.contextof,str(pmi.contextof.rect.centerx),str(pmi.contextof.rect.centery))),
             title="Sprite Info",
             width=350,
-            event_list=pygame.event.get()
+            event_list=pygame.event.get(),
+            theme=self.theme
         )
 
 
-    def __init__(self,window,rg):
+    def __init__(self,window,rg,theme="default.json"):
 
+        self.window = window
+        self.rg = rg
+        self.theme = theme
+        super().__init__()
+
+# NOTE: A ui.PopupMenuActions instance that has a single function/action mapping for River sprite to change its image.
+class RiverSpriteActions(ui.PopupMenuActions):
+
+    def change_image(self):
+        pmi = self.get_active_menuitem()
+        s = pmi.contextof
+        if s.direction=="up":
+            s.image = s.images[0]
+            s.direction = "down"
+
+        else:
+            s.image = s.images[1]
+            s.direction = "up"
+        #print(("%s sprite image changed." % str(s)))
+           
+    def __init__(self,window,rg):
         self.window = window
         self.rg = rg
         super().__init__()
 
 # NOTE: Class sprite section
+# BaseSprite in which all custom Sprite classes are derived from in this example.:
 class BaseSprite(pygame.sprite.Sprite):
 
     def get_abs_gamepath(self) -> str:
@@ -131,7 +180,7 @@ class BaseSprite(pygame.sprite.Sprite):
 
         file = os.path.join(self.get_resdir(),file)
         try:
-            surface = pygame.image.load(file).convert()
+            surface = pygame.image.load(file)
         except pygame.error:
             raise SystemExit(f'Could not load image "{file}" {pygame.get_error()}')
         return surface.convert() 
@@ -159,36 +208,61 @@ class Boat(BaseSprite):
         self.image = self.loadimage("BoatSprite.gif")
         self.rect = self.image.get_rect()        
 
+class River(BaseSprite):
+
+    def __init__(self):
+
+        super().__init__()
+
+        self.images = [
+            self.loadimage("LandRiverSprite.gif"),
+            self.loadimage("LandRiverSprite_UP.gif")
+        ]
+        
+        self.direction = "down"
+        self.image = self.images[0]
+        self.rect = self.image.get_rect()
+# END SPRITE Define Section.
+
 def run():
     pygame.init()
     window = pygame.display.set_mode((600,400))
+    pygame.display.set_caption("Right click on any Sprite|Image")
     clock = pygame.time.Clock()
     run = True
 
-    tr = Tree() # NOTE: Example custom sprite class
+    # NOTE: 
+    # Add sprites to game, and set starting x,y pos.
+    tr = Tree()
     boat = Boat()
     boat.rect.centerx = 100
     boat.rect.centery = 100
-
+    ri = River()
+    ri.rect.centerx = 200
+    ri.rect.centery = 200
+    
+    # NOTE:
+    # Create a RenderUpdates() group used for game, add sprites.
     all = pygame.sprite.RenderUpdates()
-    pu = None  
     all.add(tr)
     all.add(boat)
+    all.add(ri)
 
-    # NOTE:
-    # STEP1: Define the PopupMenuActions inherited class. 
-    # STEP2: Create context/(name).json file
-    #   a. Make sure that the file is in PopupMenuContext expected format
-    #   b. Fill in detials related PopupMenu, MenuItems, actions when clicked, what sprite classes popup is valid for
-    #   c. Save
-    # STEP3: Initialize *ANY* PopupMenuActions classes, ie: like example below:
+    # NOTE: Set globaltheme to be used across all elements. When supplied, overrides instance specific theme supplied:
+    ui.globaltheme("ex_red.json")
+    
+    # NOTE: Initialize *ANY* PopupMenuActions classes, ie: like example below:
+    # NOTE: Comment out an example PopupMenuActions derived class below. You will notice that the mapped context
+    # will not take place, and therefore no detection of a PopupMenu to render. This is why initialization of
+    # specific game instance PopupMenuActions ONCE creates the needed pyguix.ui.elements.globalcontext() values
     SpriteInfo(window,all)
     BoatSpriteActions(window,all)
-    # STEP4: Create PopupMenu instance via pygame.BUTTON_RIGHT for MOUSEBUTTONDOWN event.type
-    # STEP5: If BUTTOn_LEFT detected and PopupMenu instance active then check against event list.
-    #   a. Once user clicks the PopupMenuActions.(action_name) function will be called passing it 
-    #       the clicked PopupMenuItem instance to act upon. 
+    RiverSpriteActions(window,all)
 
+    # NOTE: Finally create game wide variable used for PopupMenu instance(s):
+    pu = None  
+
+    # NOTE: Main game loop:
     while run:
         pygame.display.update()
         clock.tick(40)
@@ -196,7 +270,7 @@ def run():
         
         window.fill((0,0,0)) # clear test window
         all.draw(window)
-
+        
         for event in event_list:
             if event.type == pygame.QUIT:
                 run = False
@@ -206,30 +280,24 @@ def run():
                     # NOTE: PopupMenu Example
                     # ***********************
                     # Check to see if the ui.PopupMenu variable 'pu' is currently NOT set to None type.
-                    if pu != None:
-                        pu.remove(all)
+                    ui.PopupMenu.clearall(pu)
                     # Create new instance of ui.PopupMenu:
                     pu = ui.PopupMenu(
                         window=window,
                         target_mouse_pos=pygame.mouse.get_pos(),
-                        rg=all
+                        rg=all,
+                        theme="ex_blue.json" # NOTE: When globaltheme() set, the THIS VALUE IS OVERRIDE by global.
                     )
                      
                 elif event.button == pygame.BUTTON_LEFT:
-                    if pu != None:
-                        cpmi = pu.clicked(event_list)
-                        if cpmi != None:
-                            
-                            # NOTE: Clear the test screen.
-                            window.fill((0,0,0))
-                            pygame.display.flip()
+                    # NOTE: If PopupMenu instance active then call PopupMenu.clicked() passing in event_list:
+                    if isinstance(pu,ui.PopupMenu):
+                        pu.clicked(event_list)
 
-                            # NOTE: Tell PopupMenu instance to remove itself from spriteRenderUpdates() group.:
-                            if pu != None:
-                                pu.remove(all)
-                                pu = None
-
-        pygame.display.update()
+        # NOTE: Check to make sure pu variable is of type ui.PopupMenu, if so then
+        # call .update() for updating when user mouse is 'hovering' over PopupMenu.PopupMenuItem
+        if isinstance(pu,ui.PopupMenu):
+            pu.update()
 
 if __name__ == '__main__':
     run()

@@ -1,0 +1,33 @@
+{
+    "EventTopicHUD": {
+        "variables": {
+            "start_direction": "Closed",
+            "start_time": 5
+        },
+        "topic":{
+            "dimensions":{
+                "width": 180,
+                "height": 80,
+                "radius": 0
+            },
+            "font":{
+                "size":28,
+                "type":"",
+                "set_bold":false
+            }
+        },
+        "value":{
+            "dimensions":{
+                "width": 60,
+                "height": 80,
+                "radius": 0
+            },
+            "font":{
+                "size":28,
+                "type":"",
+                "set_bold":true
+            }
+        },
+        "notes": "EventTopicHUD default settings json file. start_time value is seconds to show EventTopicHUD rendered sprite."
+    }
+}

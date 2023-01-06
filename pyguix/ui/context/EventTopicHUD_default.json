@@ -1,0 +1,18 @@
+{
+    "SnapHUD": {
+        "details": {
+            "infoclass": "<class '__main__.EventTopicHUDPartInfoExample'>"
+        },
+        "parts":{
+            "example_one":{
+                "title": "Example Update One",
+                "function": "ex_one"
+            },
+            "example_two":{
+                "title": "Example Update Two",
+                "function": "ex_two"
+            }
+        },
+        "notes": "infoclass sets target for call PartInfoExample functions. "
+    }
+}

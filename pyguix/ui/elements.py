@@ -21,23 +21,53 @@ import pyguix.__utils__.__help__ as utils
 
 uth = utils.helper()
 # NOTE: When an action class is created, the base scope class adds its targetclasses as keys
-# to the following dict(), with a value of the action class instance to use
-# TODO: Need to finlize elements.init and what is actually done. 
+# to the following dict(), with a value of the action class instance to use 
 reg_json2pmas = uth.init_reg_json2pmas()
 reg_pmas = uth.init_reg_pmas()
 reg_tc2pma = dict()
 
-spritecache = dict()
-def set_spritecache(v=None):
-    """ When v=Sprite, then passed in Sprite is acted upon for executing PopupMenuActions class. \n call set_spritecache() to clear cache. """
-    spritecache[utils.POPUP_ACT]=v
-set_spritecache()
+# NOTE: START global_cache section **********************
+__global_cache__ = dict()
 
-# ******************************************************************************************
+# spritecache for global_cache
+def clear_spritecache():
+    """ Resets global_cache for Sprite active target executing PopupMenuActions. """
+    __global_cache__[utils.POPUP_ACT]=None
+def spritecache(v=None):
+    """ When v=Sprite, then passed in Sprite is acted upon for executing PopupMenuActions class. Call clear_spritecache() to clear cache. """
+    if v != None:
+        __global_cache__[utils.POPUP_ACT]=v
+    elif not __global_cache__.keys().__contains__(utils.POPUP_ACT):
+        # Initialize global_cache[utils.POPUP_ACT]
+        clear_spritecache()
+    return __global_cache__[utils.POPUP_ACT] 
+
+# themecache for global_cache
+def clear_globaltheme():
+    __global_cache__[utils.GLB_THEME]=None
+def globaltheme(v=None):
+    """ Set/Get theme for ui elements. """
+    if v != None:
+        __global_cache__[utils.GLB_THEME]=v
+    elif not __global_cache__.keys().__contains__(utils.GLB_THEME):
+        # Initialize global_cache[utils.GLB_THEME]
+        clear_globaltheme()
+    return __global_cache__[utils.GLB_THEME]
+
+# context for global_cache
+def clear_globalcontext(k):
+    __global_cache__[k]=None
+def globalcontext(k,v=None):
+    if v != None:
+        __global_cache__[k]=v
+    elif not __global_cache__.keys().__contains__(k):
+        clear_globalcontext(k)
+    return __global_cache__[k]
+# END global_cache section ******************************
 
 # Classes:
 class MessageBox(pygame.sprite.Sprite):
-    """ pyguix.ui.elements.MessageBox ui class """
+    """ pyguix.ui.elements.MessageBox ui class. Instance crated and called to with flexible options for displaying supplied data and information. Ability to supply MessageBox.buttons, and react upon button value clicked post rendering of MessageBox and user intercation. """
 
     def __init__(
             self,
@@ -48,14 +78,18 @@ class MessageBox(pygame.sprite.Sprite):
             width=utils.MSGBOX_WIDTH,
             height=utils.MSGBOX_HEIGHT,
             event_list=None,
-            theme=utils.MSGBOX_DEFAULT_JSONTHEME,
+            theme=utils.DEFAULT_THEME,
+            settings=utils.MSGBOX_DEFAULT_JSONSETTING,
             rg=None
         ):
         
         super().__init__()
 
+        # Init MessageBox JSON Settings file:
+        self.settings = self.__init_settings(settings)
+
         # Init MessageBox JSON theme file:
-        self.theme = self.__init_messagebox_theme__(theme)
+        self.theme = self.__init_theme__(theme)
 
         # Init MessageBox dimensions and variables:
         self.__init_messagebox_dimesions__(window,width,height,buttons,message_text,title,event_list)
@@ -95,9 +129,14 @@ class MessageBox(pygame.sprite.Sprite):
             while self.wait(self.event_list):
                 self.event_list = pygame.event.get()
 
-    def __init_messagebox_theme__(self,theme) -> utils.MessageBoxTheme:
+    def __init_settings(self,settings) -> utils.MessageBoxSettings:
+        return utils.MessageBoxSettings(settings)
+    
+    def __init_theme__(self,theme) -> utils.ElementTheme:
         """ internal function that loads passed in (or default) MessageBox JSON theme. """
-        return utils.MessageBoxTheme(theme)
+        if globaltheme() != None:
+            theme = globaltheme()
+        return utils.ElementTheme(theme)
 
     def __init_messagebox_dimesions__(self,window,width,height,buttons,message_text,title,event_list):
         """ internal function that initializes the MessageBox dimensions, and passed in variables. """
@@ -105,9 +144,9 @@ class MessageBox(pygame.sprite.Sprite):
         self.__canceled__ = False
         self.window = window
         self.box_width = width 
-        self.box_outline_width = self.box_width+self.theme.get_variables().outlinebuffer
+        self.box_outline_width = self.box_width+self.settings.get_variables().outlinebuffer
         self.box_height= height
-        self.box_outline_height = self.box_height+self.theme.get_variables().outlinebuffer
+        self.box_outline_height = self.box_height+self.settings.get_variables().outlinebuffer
         self.buttons = buttons
         self.message_text = self.__message_text_max__(message_text)
         self.title = self.__title_text_max__(title)
@@ -118,14 +157,14 @@ class MessageBox(pygame.sprite.Sprite):
         """ internal function that initializes the title, title surface and title outline surface details. """
         self.title_width = self.box_width
         self.title_outline_width = self.title_width
-        self.title_height = self.theme.get_title().dimensions.height
-        self.title_outline_height = self.title_height + self.theme.get_title().outlinebuffer
+        self.title_height = self.settings.get_title().dimensions.height
+        self.title_outline_height = self.title_height + self.settings.get_title().outlinebuffer
         self.title_outline_surf = pygame.Surface((self.title_outline_width,self.title_outline_height))
         self.title_outline_surf.fill(self.theme.get_colors().titleoutline)
         self.title_surf = pygame.Surface((self.title_width,self.title_height))
         self.title_surf.fill(self.theme.get_colors().title)
         # TODO: (12/26/22) Finaize custom font
-        title_font = pygame.font.Font(None,self.theme.get_title().fontsize)
+        title_font = pygame.font.Font(None,self.settings.get_title().fontsize)
         title_font.set_bold(True)
         # TODO: (12/26/22) Finalize custom font
         self.title_text_surf = title_font.render(self.title, True, self.theme.get_colors().text)
@@ -147,8 +186,8 @@ class MessageBox(pygame.sprite.Sprite):
         self.__clicked__= utils.MSGBOX_CANCELED_TXT
 
         # Button dimensions:
-        self.btn_dims = self.theme.get_btns().dimensions.wh() 
-        self.btn_buffer = self.theme.get_btns().buffer 
+        self.btn_dims = self.settings.get_btns().dimensions.wh() 
+        self.btn_buffer = self.settings.get_btns().buffer 
 
         # Build buttons:
         self.btn_array = []
@@ -208,21 +247,31 @@ class MessageBox(pygame.sprite.Sprite):
     
     def __blit_msgtext_surf__(self):
         """ internal function that will blit MessageBox text to box_surf """
-        self.box_surf.blit(
-            self.msgtext_surf, 
-            self.msgtext_surf.get_rect(
-                center=(
-                    self.box_width // 2,
-                    (self.box_height // 2)-4
-                )
+        if self.settings.get_variables().messagejustify == utils.MSGBOX_JUSTIFY_LEFT:
+            # Left:
+            left_pos = (
+                self.box_pos[0],(self.box_height // 2)-self.settings.get_variables().messageheightbuffer
             )
-        )
-    
+            self.box_surf.blit(
+                self.msgtext_surf, 
+                self.msgtext_surf.get_rect(topleft=left_pos)
+            )
+        else:
+            # Center:
+            center_pos = (
+                self.box_width // 2,
+                (self.box_height // 2)-self.settings.get_variables().messageheightbuffer
+            )
+            self.box_surf.blit(
+                self.msgtext_surf, 
+                self.msgtext_surf.get_rect(center=center_pos)
+            )
+        
     def __blit_cancel_button__(self):
         """ internal function that will blit the cancel button to the current title surface. """
         but_center = (
-            self.title_width-self.theme.get_cnlbtn().circlebuffer, 
-            self.title_height-self.theme.get_cnlbtn().circlebuffer 
+            self.title_width-self.settings.get_cnlbtn().circlebuffer, 
+            self.title_height-self.settings.get_cnlbtn().circlebuffer 
         )
         self.title_surf.blit(self.cancel_button_surf,self.cancel_button_surf.get_rect(center=but_center))
     
@@ -239,23 +288,23 @@ class MessageBox(pygame.sprite.Sprite):
         ret = ( 
                 # X= related to position of MessageBox and width(s):
                 self.box_outline_pos[0]+self.box_pos[0]+(
-                        self.title_width-self.theme.get_cnlbtn().circlebuffer 
+                        self.title_width-self.settings.get_cnlbtn().circlebuffer 
                     )+(
-                        self.theme.get_cnlbtn().surfacedimensions.width-( 
-                                self.theme.get_cnlbtn().circledimensions.width 
+                        self.settings.get_cnlbtn().surfacedimensions.width-( 
+                                self.settings.get_cnlbtn().circledimensions.width 
                             )
                         )-(
-                            self.theme.get_cnlbtn().circledimensions.radius // 2 
+                            self.settings.get_cnlbtn().circledimensions.radius // 2 
                 ),
                 # Y= related to position of MessagBox and height(s): 
                 self.box_outline_pos[1]+self.box_pos[1]+(
-                    self.title_height-self.theme.get_cnlbtn().circlebuffer 
+                    self.title_height-self.settings.get_cnlbtn().circlebuffer 
                     )+(
-                         self.theme.get_cnlbtn().surfacedimensions.height -( 
-                                self.theme.get_cnlbtn().circledimensions.height 
+                         self.settings.get_cnlbtn().surfacedimensions.height -( 
+                                self.settings.get_cnlbtn().circledimensions.height 
                             )
                         )-(
-                            self.theme.get_cnlbtn().circledimensions.radius // 2 
+                            self.settings.get_cnlbtn().circledimensions.radius // 2 
                 ) 
             )
         return ret
@@ -263,8 +312,8 @@ class MessageBox(pygame.sprite.Sprite):
     def __get_cancel_button__(self,hover=False) -> pygame.Surface:
         """ returns MessageBox cancel button. When hover will highlight in UI. """
         # TODO: (12/26/22) Finalize custom font.
-        font = pygame.font.Font(None,self.theme.get_variables().fontsize) 
-        butsurf_dims = self.theme.get_cnlbtn().surfacedimensions.wh() 
+        font = pygame.font.Font(None,self.settings.get_variables().fontsize) 
+        butsurf_dims = self.settings.get_cnlbtn().surfacedimensions.wh() 
         button_surf = pygame.Surface(butsurf_dims)
         button_surf.fill(self.theme.get_colors().title)
         
@@ -275,10 +324,10 @@ class MessageBox(pygame.sprite.Sprite):
             button_clr = self.theme.get_colors().button
             text_clr = self.theme.get_colors().buttonhovertext
 
-        butcircle_dims = self.theme.get_cnlbtn().circledimensions.wh() 
-        text_surface = font.render(self.theme.get_cnlbtn().circletext, True, text_clr)
+        butcircle_dims = self.settings.get_cnlbtn().circledimensions.wh() 
+        text_surface = font.render(self.settings.get_cnlbtn().circletext, True, text_clr)
         # DRAW Circle:
-        cbr = self.theme.get_cnlbtn().circledimensions.radius
+        cbr = self.settings.get_cnlbtn().circledimensions.radius
         pygame.draw.circle(button_surf,button_clr,butcircle_dims,cbr,cbr) 
         # BLIT to button_surface that will be returned:
         button_surf.blit(text_surface, text_surface.get_rect(center = butcircle_dims))
@@ -287,12 +336,18 @@ class MessageBox(pygame.sprite.Sprite):
     def __get_button__(self,b,border=0,hover=False) -> tuple:
         """ returns a new messagebox button for use with messagebox. """
         # TODO: (12/26/22) Finalize custom font
-        font = pygame.font.Font(None, self.theme.get_variables().fontsize)
-        dims_center = ((self.btn_dims[0] // 2)+1,(self.btn_dims[1] // 2)+1) 
+        font = pygame.font.Font(None, self.settings.get_variables().fontsize)
+        dims_center = (
+            (self.btn_dims[0] // 2)+(self.settings.get_btns().outlinebuffer // 2),
+            (self.btn_dims[1] // 2)+(self.settings.get_btns().outlinebuffer // 2)
+        ) 
         button_surf = pygame.Surface(self.btn_dims)
         
         # Hover Outline setup:
-        bod = self.btn_dims[0]+2,self.btn_dims[1]+2
+        bod = (
+            self.btn_dims[0]+self.settings.get_btns().outlinebuffer,
+            self.btn_dims[1]+self.settings.get_btns().outlinebuffer
+        )
         button_outline = pygame.Surface(bod)
         
         button_outline_clr = self.theme.get_colors().titleoutline 
@@ -331,23 +386,23 @@ class MessageBox(pygame.sprite.Sprite):
     def __get_message_text__(self) -> pygame.Surface:
         """ returns a surface that is ready for blit() call upon message box surface to display messagebox message. """
         # TODO: (12/26/22) Finalize custom font.
-        font = pygame.font.Font(None, self.theme.get_variables().fontsize)
+        font = pygame.font.Font(None, self.settings.get_variables().fontsize)
         text_surface = font.render(self.message_text, True, self.theme.get_colors().text)
         return text_surface    
     
     def __message_text_max__(self,msg) -> str:
         """ returns safe text for message, based on max constant percentage of message box width. """
-        return self.__base_text_max__(msg, self.theme.get_variables().messagemax)
+        return self.__base_text_max__(msg, self.settings.get_variables().messagemax)
 
     def __title_text_max__(self,msg) -> str:
         """ returns safe text for title, based on max constant percentage of message box width. """
-        return self.__base_text_max__(msg,self.theme.get_variables().titlemax,self.theme.get_title().textupcase)
+        return self.__base_text_max__(msg,self.settings.get_variables().titlemax,self.settings.get_title().textupcase)
 
     def __base_text_max__(self,s,max,up=False) -> str:
         """ base internal function called for safe title and message text. """
         if s.__len__() > (self.box_width * max):
             m = int(self.box_width*max)
-            r = (s.__len__()-m)+3
+            r = (s.__len__()-m)+3 # TODO: Finalize base_text_max count buffer
             s = uth.str_rtrim(s,r)
             s = ("%s..." % s)
         if up:    
@@ -364,7 +419,7 @@ class MessageBox(pygame.sprite.Sprite):
                     self.__canceled__ = True
                 elif event.key == pygame.K_RETURN:
                     self.__wait__ = False
-                    self.__clicked__ = self.buttons[self.theme.get_btns().returnbutton] 
+                    self.__clicked__ = self.buttons[self.settings.get_btns().returnbutton]
 
     def __event_list_check_button__(self,event_list,b=utils.MSGBOX_CANCELED_TXT):
         """ internal function that will process passed in event_list and update MessageBox properties. """
@@ -455,15 +510,13 @@ class MessageBox(pygame.sprite.Sprite):
         """ returns True if MessageBox instance was canceled, False otherwise. """
         return self.__canceled__
 
-# NOTE: PopupMenu Section:
 class PopupMenuActions(object):
-    """ pyguix.ui.elements.PopupMenuActions class. Meant to be subed and paired with context (*.json) file for menu item actions. """
+    """ pyguix.ui.elements.PopupMenuActions class. Meant to be subed and paired with context (*.json) file for menu item actions. Contains function / logic for PopupMenuItem actions that are to-be executed upon contextof mapped Sprite class."""
 
     def __init__(self):
         
         # TODO: Finalize a 'safe' method for checking full type as str vs. loaded json2pmans mapping dict().
         self.__context_name__ = reg_json2pmas[str("%s" % type(self))] #context
-
         self.__context__ = self.__init_context__()
         self.__target__ = ""
         self.__target_classes__ = self.__init_target_classes__()
@@ -490,8 +543,15 @@ class PopupMenuActions(object):
         ret = ret and self.__check_valid_functions__()
         return ret
     
+    # TODO: Finalize object cache, intilization, etc.
     def __init_context__(self) -> utils.PopupMenuContext:
-        return utils.PopupMenuContext(self.get_context_name())
+        ret = None
+        if globalcontext(self.get_context_name()) == None:
+            ngc = utils.PopupMenuContext(self.get_context_name())
+            globalcontext(self.get_context_name(),ngc)
+        ret = globalcontext(self.get_context_name())
+        return ret
+        #return utils.PopupMenuContext(self.get_context_name())
     
     def __init_target_classes__(self) -> tuple:
         return self.get_context().get_target_classes()
@@ -502,9 +562,19 @@ class PopupMenuActions(object):
             if mi.type == utils.PopupMenuItemType.Action:
                 ret[mi.identity] = mi.action
         return ret
-
-    def __add_function__(self,k,v):
-        self.__functions__[k] = v
+    
+    def set_enabled(self,act,b=True):
+        """ Called from derived classes to allow for dynamically enable or disable PopupMenuItems. """
+        mi = self.get_context().find_menuitem_by_action(act)
+        if mi == None:
+            raise LookupError(("Can't find PopupMenuContext (%s) menuitem action (%s) [pyguix.ui.elements.PopupMenuAction]" % (self.get_context_name(),act)))
+        ngc = self.get_context()
+        iof = ngc.get_menuitems().index(mi)
+        nmi = mi
+        nmi.enabled = b
+        ngc.get_menuitems().pop(iof)
+        ngc.get_menuitems().insert(iof,nmi)
+        globalcontext(self.get_context_name(),ngc)
 
     def __check_valid_functions__(self) -> bool:
         ret = True
@@ -526,17 +596,13 @@ class PopupMenuActions(object):
         return ret
     
     def __check_valid_class__(self) -> bool:
-        ret = False
+        ret = False    
         if ("%s" % type(self)) == self.get_context().get_action_class():
-        #if self.__class__.__name__ == self.get_context().get_action_class():
             ret = True
         if not ret:
             raise LookupError("JSON context file (%s) with name %s & %s class don't match. Check the JSON file. [pyguix]" % (self.get_context_name(),self.get_context().get_action_class(),self.__class__.__name__))
         return ret
 
-    def get_isvalid(self) -> bool:
-        return self.__isvalid__
-    
     def get_context_name(self) -> str:
         return self.__context_name__
     
@@ -558,21 +624,30 @@ class PopupMenuActions(object):
     def get_active_menuitem(self):
         return self.__act_pmi__
 
-    def execute(self): # TODO: Need to finalize
-        ex = self.get_funcmap().get(self.__act_pmi__.get_identity())
-        eval(("self.%s()" % (ex)))
+    def execute(self):
+        # NOTE: Use of reflection to find active function related to clicked/active menuitem. 
+        funcstr = self.get_funcmap().get(self.get_active_menuitem().get_identity())
+        # Then call with getattr() to get callable function (func) for active instance of 'self'
+        func = getattr(self,funcstr)
+        # Finally call the desired target self.function() mapped via context.JSON file.
+        func()
 
 class PopupMenuItem(pygame.Surface):
-    """ pyguix.ui.elements.PopupMenuItem ui class """
+    """ pyguix.ui.elements.PopupMenuItem class used in generation of PopupMenu. Generated by mapped JSON context files, listing details for 'menuitems'. Actions are mappings to PopupMenuActions.(function) name to-be executed, in contextof mapped Sprite class. """
 
-    def __init__(self,window,dataclass,pos=(0,0),dims=(0,0)):
+    def __init__(self,window,dataclass,theme,settings,ishover=False,pos=(0,0),dims=(0,0)):
 
         super().__init__(size=dims)
 
+        self.__ishover__ = ishover
         self.__dataclass__ = dataclass
+        self.__enabled__ = self.__get_pmi__().enabled # Set True or False
+        self.__theme__ = theme
+        self.__settings__ = settings
+        
         self.__init_dimensions(window,pos,dims)
-        self.image = self.__init_item__()
         self.rect = pygame.Rect((pos,dims))
+        self.image = self.__init_item__()
         self.mouse_pos = (0,0)
         self.contextof = None
         
@@ -581,12 +656,15 @@ class PopupMenuItem(pygame.Surface):
         self.width = dims[0]
         self.height = dims[1]
         self.w_width,self.w_height = window.get_size()
-        if self.__get_pmi__().type == utils.PopupMenuItemType.Separator:
+        if self.__get_pmi__().type == utils.PopupMenuItemType.Separator and self.__get_pmi__().text == utils.POPUP_SEPCHAR:
+            
             i=0
             ntext = uth.get_sepchar2text(self.__get_pmi__().text)
-            while i < self.width:
+            
+            while i <= (self.width):
                 i+=1
                 ntext = ntext + uth.get_sepchar2text(self.__get_pmi__().text)
+
             self.__get_pmi__().text = ntext
 
         self.pos = pos
@@ -594,10 +672,29 @@ class PopupMenuItem(pygame.Surface):
     
     def __get_pmi__(self) -> utils.PopupMenuItem:
         return self.__dataclass__
+    
+    def __get_theme__(self) -> utils.ElementTheme:
+        return self.__theme__
+    
+    def __get_settings__(self) -> utils.PopupMenuSettings:
+        return self.__settings__
 
     def __init_item__(self) -> pygame.Surface:
-        f = pygame.font.Font(None,18) # TODO: Finalize font from theme JSON
-        text_surface = f.render(self.get_text(), True, (230,220,210)) # TODO: Finalize text color from theme JSON
+        f = pygame.font.Font(
+            self.__get_settings__().get_menuitem_text().fonttype,
+            self.__get_settings__().get_menuitem_text().size
+        ) 
+        mibclr = (0,0,0)
+        if self.get_enabled():
+            if self.__ishover__:
+                mibclr = self.__get_theme__().get_colors().buttonhovertext
+            else:
+                mibclr = self.__get_theme__().get_colors().text 
+        elif self.get_type() == utils.PopupMenuItemType.Separator:
+            mibclr = self.__get_theme__().get_colors().outline
+        else:
+            mibclr = self.__get_theme__().get_colors().textdisabled
+        text_surface = f.render(self.get_text(), True, mibclr)
         return text_surface
     
     def get_text(self) -> str:
@@ -608,17 +705,22 @@ class PopupMenuItem(pygame.Surface):
         return self.__get_pmi__().identity
     def get_action(self) -> str:
         return self.__get_pmi__().action
+    def get_enabled(self) -> bool:
+        return self.__enabled__
     def get_clicked(self) -> bool:
         return self.__get_pmi__().clicked
 
 class PopupMenu(pygame.sprite.Sprite):
-    """ pyguix.ui.elements.PopupMenu ui class """
+    """ pyguix.ui.elements.PopupMenu Main class for generating contexual PopupMenu(s). Based on JSON context/theme files, as well as PopupMenuAction inherited classes. Related to mapping 'actions' (PopupMenuItem) and sprite classes (contextof)."""
 
-    def __init__(self,window,context=utils.POPUP_DEFAULT_JSONCONTEXT,contextof=None,rg=None,target_mouse_pos=(0,0)):
+    def __init__(self,window,rg=None,target_mouse_pos=(0,0),settings=utils.POPUP_DEFAULT_JSONSETTING,theme=utils.DEFAULT_THEME):
 
         super().__init__()
 
         self.tpma = None
+        self.__theme__ = theme
+        self.pum_pos = (0,0)
+        self.isvalid = True
 
         if type(rg) == type(pygame.sprite.RenderUpdates()):
             self.rg = rg
@@ -627,29 +729,40 @@ class PopupMenu(pygame.sprite.Sprite):
 
         # determine if ANY object class was clicked on.:
         # NOTE: Get class for popup mouse pos collide context of:
-        if spritecache[utils.POPUP_ACT] != None:
-            self.__contextof__ = spritecache[utils.POPUP_ACT]  
+        if spritecache() != None:
+            self.__contextof__ = spritecache()  
         else:
             self.__contextof__ = self.__get_contextof__()
-        
-        self.__contextof_pum__ = self.__init_context_of__(self.__contextof__)
 
+        self.__contextof_pum__ = self.__init_context_of__(self.__contextof__)
         # Init PopupMenu context JSON file:
-        self.__context__ = self.__init_popup_context__(self.__contextof_pum__) #context)
+        self.__context__ = self.__init_popup_context__(self.__contextof_pum__)
         if self.__context__.get_action_class() == "" or self.__context__.get_action_class() == None:
-            # DO NOT RENDER POPUP
+            # DO NOT RENDER PopupMenu
+            self.isvalid = False
             return
 
-        # Init MessageBox dimensions and variables:
+        self.__settings__ = self.__init_popup_settings__(settings)
+
+        # Init PopupMenu dimensions:
         self.__init_dimensions__(window)
         
         self.rg.add(self)
-        self.update()
+        self.update(isinit=True)
         self.target_mouse_pos=target_mouse_pos
     
+    # TODO Finalize init - * KEY TO MEMORY ISSUE BECAUSE OF DEFAULT.JSON *
     def __init_popup_context__(self,context) -> utils.PopupMenuContext:
-        return utils.PopupMenuContext(context)
+        # NOTE: KEY issue for 'default.json' memory leak problem.
+        if globalcontext(context) == None:
+            ngc = utils.PopupMenuContext(context)
+            globalcontext(context,ngc)
+        ret = globalcontext(context)
+        return ret
 
+    def __init_popup_settings__(self,settings) -> utils.PopupMenuSettings:
+        return utils.PopupMenuSettings(settings)
+    
     def __init_context_of__(self,cat):
         tos = ("%s" % type(cat))
         ret = None
@@ -678,23 +791,23 @@ class PopupMenu(pygame.sprite.Sprite):
 
     def __init_dimensions__(self,window):
         self.window = window
-        self.dims = self.__get_context__().get_dimensions() # NOTE: Now part of PopupMenu_*.json context file. 
+        self.dims =  self.__get_settings__().get_dimensions()
         self.width = self.dims.width
-        self.box_outline_width = self.width + 4 # TODO: Remove hardcoded buffer
+        self.box_outline_width = self.width + self.__get_settings__().get_outline_buffer() 
         self.height = self.dims.height
-        self.box_outline_height = self.height + 4 # TODO: Remove hardcoded buffer
+        self.box_outline_height = self.height + self.__get_settings__().get_outline_buffer()
         self.w_width,self.w_height = window.get_size()
         self.pmis=[]
         self.__clicked__ = None
     
     def __get_box_outline_surf__(self,pos=(0,0)) -> pygame.Surface:
-        """ internal function that returns MessageBox outline surface for element creation. """
+        """  """
         if pos == (0,0):
             pos = ((self.w_width // 2),(self.w_height // 2))
 
         self.box_outline_pos = (
-            (pos[0]+4), 
-            (pos[1]+4) 
+            (pos[0]+self.__get_settings__().get_outline_buffer()),
+            (pos[1]+self.__get_settings__().get_outline_buffer()) 
         )
 
         # Check to make sure that pos will not allow popup to draw beyond window bounds:
@@ -722,46 +835,115 @@ class PopupMenu(pygame.sprite.Sprite):
         self.box_outline_pos = bop
         # NOTE: End check for screen/display placemenet of popup
         ret = pygame.Surface((self.box_outline_width,self.box_outline_height))
-        ret.fill((100,100,100))  #self.theme.get_colors().outline)
+        ret.fill(self.__get_theme__().get_colors().outline)  
         return ret
 
-    def __get_button__(self,pos,dc) -> PopupMenuItem:
+    def __get_button__(self,pos,dc,ishover=False) -> PopupMenuItem:
 
         pmi = PopupMenuItem(
             window=self.window,
             dataclass=dc,
+            theme=self.__get_theme__(),
+            settings=self.__get_settings__(),
+            ishover=ishover,
             pos=pos,
-            dims=(self.dims.width,15) # TODO: Need to finalize dimensions of menu items vs. hardcoded height value
+            dims=(
+                self.__get_settings__().get_menuitem_dimensions().wh()
+            )
         )
         return pmi
     
     def __get_context__(self) -> utils.PopupMenuContext:
         return self.__context__
 
-    def update(self):
+    def __get_settings__(self) -> utils.PopupMenuSettings:
+        return self.__settings__
+    
+    def __get_theme__(self) -> utils.ElementTheme:
+        if globaltheme() != None:
+            self.__theme__ = globaltheme()
+        return utils.ElementTheme(self.__theme__)
+
+    def __get_displaybox__(self) -> pygame.Surface:
+        ret = pygame.Surface((self.width,self.height))
+        ret.fill(self.__get_theme__().get_colors().default)
+        return ret
+
+    def update(self,isinit=False):
+
+        if not self.isvalid:
+            return 
 
         # MessageBox outline surface:
-        pos = pygame.mouse.get_pos()
+        if isinit:
+            self.pum_pos = pygame.mouse.get_pos()    
+        pos = self.pum_pos
+        
         self.box_outline_surf = self.__get_box_outline_surf__(pos=pos)
+        self.displaybox = self.__get_displaybox__()
         
         # TODO: Move the following section for an __init__* to build out menu items, seprators, etc.
         miorder=0
+        self.pmis.clear()
         for mi in self.__get_context__().get_menuitems():
+    
             pos2=(
-                self.box_outline_pos[0],(self.box_outline_pos[1]+((15+5)*miorder)) #<-NOTE: [A] MUST MATCH [B] + BUFFER *************
-            )
-            p2 = self.__get_button__(pos2,mi)
-            pis2 = pygame.Surface(size=(self.dims.width,15)) # TODO: Need to finalize dimensions of menu items.
-            pis2.fill((100,100,100)) # TODO: Finalize color theme apply.
-            pis2.blit(p2.image,p2.image.get_rect())
-            self.box_outline_surf.blit(pis2,pis2.get_rect(topleft=(
-                        pis2.get_rect().x,(pis2.get_rect().y+((15+5)*miorder)) #<-NOTE: [B] HERE IS B! + BUFFER ******************
+                self.box_outline_pos[0],
+                (self.box_outline_pos[1]+(
+                        self.__get_settings__().get_menuitem_dimensions().height*miorder
                     )
                 )
             )
-            self.pmis.append(p2)
-            miorder+=1
 
+            ishover = False
+            if mi.type == utils.PopupMenuItemType.Action:
+                pos2=(
+                    pos2[0]+self.__get_settings__().get_action_text_buffer(),
+                    pos2[1]+self.__get_settings__().get_action_text_buffer()
+                )
+                # NOTE: Collide rect check for menu item button:
+                pr = pygame.Rect(
+                        pos2[0],
+                        pos2[1],
+                        self.__get_settings__().get_menuitem_dimensions().width,
+                        self.__get_settings__().get_menuitem_dimensions().height
+                    )
+                prc = pr.collidepoint(pygame.mouse.get_pos())
+                if prc:
+                    ishover=True
+                del pr
+
+            p = self.__get_button__(pos2,mi,ishover)
+            pis = pygame.Surface(size=(self.dims.width,(self.__get_settings__().get_menuitem_dimensions().height))) 
+            pis.fill(self.__get_theme__().get_colors().default) 
+            
+            if p.__get_pmi__().type == utils.PopupMenuItemType.Action:
+                tl = (
+                        p.get_rect().x+self.__get_settings__().get_action_text_buffer(),
+                        p.get_rect().y+self.__get_settings__().get_action_text_buffer()
+                ) 
+            else:
+                tl = p.get_rect().topleft
+
+            pis.blit(p.image,p.image.get_rect(topleft=(tl)))
+            
+            self.displaybox.blit(pis,pis.get_rect(topleft=(
+                        pis.get_rect().x,
+                        (pis.get_rect().y+((self.__get_settings__().get_menuitem_dimensions().height)*miorder))
+                    )
+                )
+            )
+            self.pmis.append(p)
+            miorder+=1
+        # END MOVE TO SELF CONTAINED INIT **************************************
+
+        self.box_outline_surf.blit(self.displaybox,self.displaybox.get_rect(
+                center=(
+                    self.box_outline_width // 2,
+                    self.box_outline_height // 2
+                )
+            )
+        )
 
         # Add popup to sprite.RenderUpdates() group.:
         self.image = self.box_outline_surf
@@ -772,12 +954,16 @@ class PopupMenu(pygame.sprite.Sprite):
 
     def clicked(self,event_list=None) -> PopupMenuItem:
 
+        if not self.isvalid:
+            return None
+        
         ret = self.__clicked__
         for event in event_list:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == pygame.BUTTON_LEFT:
                     for p in self.pmis:
-                        if p.get_type() == utils.PopupMenuItemType.Action:
+                        # NOTE: Make sure the PopupMenuItem clicked by user is of type Action and is currently Enabled:
+                        if p.get_type() == utils.PopupMenuItemType.Action and p.get_enabled():
                             if p.rect.collidepoint(pygame.mouse.get_pos()):
                                 p.mouse_pos = self.target_mouse_pos
                                 p.contextof = self.__contextof__
@@ -791,9 +977,436 @@ class PopupMenu(pygame.sprite.Sprite):
                                 if self.tpma != None:
                                     self.tpma.__act_pmi__ = p
                                     self.tpma.execute()
+                                break # NOTE: Stop after finding PopupMenuItem button.
                                     
 
         return ret
-# NOTE: End PopupMenu Section
+    
+    def clearall(instance):
+        """ static method that checks instance passed in, and clear any membership of active sprite groups. """
+        if isinstance(instance,PopupMenu):
+            for g in instance.groups():
+                instance.remove(g)
 
-                            
+class SnapHUDPartInfo(object):
+    """ Base SnapHUDPartInfo class meant to be inherited from. Mapped 1:1 with SnapHUD(context).json file. Contains part.function() to be executed and relay information to SnapHUDPart objects.. """
+    
+    def __init__(self) -> None:
+        
+        # NOTE: Self global context of SnapHUDPartInfo dervied class for usage through instance of game 
+        # Allowing a single instance of each type to exist, via globalcontext().:
+        if globalcontext(self.__get_typestr__(self)) != None:
+            return globalcontext(self.__get_typestr__(self))
+        
+        self.__infodict__ = dict()
+        globalcontext(self.__get_typestr__(self),self) 
+    
+    def partinfo(self,k,v=None):
+        if v != None:
+            self.__set_info__(k,v)
+        return self.__get_info__(k)
+
+    def __get_typestr__(self,o):
+        return ("%s" % type(o))
+    def __get_info__(self,k):
+        return self.__value__(k)
+    def __set_info__(self,k,v=None):
+        self.__value__(k,v)
+
+    def __value__(self,k,v=None):
+        if not self.__infodict__.__contains__(k):
+            self.__infodict__[k]=v
+        if v != None:
+            self.__infodict__[k]=v
+        return self.__infodict__[k]
+
+class SnapHUDPart(pygame.sprite.Sprite):
+    """ Base level class in which all SnapHUDParts inherit from.  """
+
+    def __init__(self):
+
+        super().__init__()
+
+        self.__settings__ = None
+        self.__theme__ = None
+        self.__context__ = None
+        self.__dataclass__ = None
+        self.__part__ = None
+
+    def init(self,settings,theme,context,dataclass):
+        """ base method call for setting values before reflection func() call of info for SnapHUDPart derived class. """
+        self.settings(settings)
+        self.theme(theme)
+        self.context(context)
+        self.__get_part_data__(dataclass)
+        self.get_part(self.__init__part__())
+    
+    def __init__part__(self) -> pygame.Surface:
+        """ function that should be overriden at derived class instance.  """
+        return None
+
+    def settings(self,s=None) -> utils.SnapHUDSettings:
+        if s != None:
+            self.__settings__ = s
+        return self.__settings__
+    def theme(self,t=None) -> utils.ElementTheme:
+        if t != None:
+            self.__theme__ = t
+        return self.__theme__
+    def context(self,c=None) -> utils.SnapHUDContext:
+        if c != None:
+            self.__context__ = c
+        return self.__context__
+    def __get_part_data__(self,dc=None) -> utils.SnapHUDPart:
+        if dc != None:
+            self.__dataclass__ = dc
+        return self.__dataclass__
+    def get_id(self):
+        return self.__get_part_data__().id
+    def get_title(self):
+        return self.__get_part_data__().title
+    def get_function(self):
+        return self.__get_part_data__().function
+    def get_type(self):
+        return self.__get_part_data__().type
+    def get_part(self,gp=None) -> pygame.Surface:
+        if gp != None:
+            self.__part__ = gp
+        return self.__part__
+    def get_value(self):
+        # NOTE: uses reflection:
+        func = getattr(globalcontext(self.context().get_infoclass()),self.get_function())
+        return func()
+
+class SnapHUDPartText(SnapHUDPart):
+    """ Simple text SnapHUDpart class that extends from base of SnapHUDPart """
+
+    def __init__part__(self) -> pygame.Surface:
+        """ build out simple text SnapHUDPart. """
+        wh = (
+            self.settings().get_title_dimensions().width,
+            self.settings().get_part_title_dimensions().height+self.settings().get_part_body_dimensions().height
+        )
+        ret = pygame.Surface(wh)
+        
+        ret.fill(self.theme().get_colors().default)
+        
+        title_surf = pygame.Surface(
+            (self.settings().get_part_title_dimensions().width,
+            self.settings().get_part_title_dimensions().height)
+        )
+        
+        title_surf.fill(self.theme().get_colors().title)
+        
+        ret.blit(title_surf,title_surf.get_rect())
+        
+        fonttitle = pygame.font.Font(None,self.settings().get_part_title_font().size)
+        fonttitle.set_bold(self.settings().get_part_title_font().setbold)
+        snap_title = fonttitle.render(self.get_title(),True,self.theme().get_colors().textsubtitle)
+        ret.blit(snap_title,snap_title.get_rect(
+                center=(
+                    ret.get_width() // 2,
+                    (ret.get_height()-(ret.get_height()-self.settings().get_part_title_dimensions().height)) // 2
+                )
+            )
+        )
+
+        font = pygame.font.Font(None,self.settings().get_part_body_font().size)
+        font.set_bold(self.settings().get_part_body_font().setbold)
+        snap_text = font.render(self.get_value(),True,self.theme().get_colors().text)
+        ret.blit(snap_text,snap_text.get_rect(
+            center=(
+                ret.get_width() // 2,
+                (ret.get_height()-self.settings().get_part_body_dimensions().height // 2)
+            )
+        ))
+
+        return ret
+
+    def __init__(self):
+
+        super().__init__()
+
+class SnapHUD(pygame.sprite.Sprite):
+    """ snap right/left heads up display ui element. """
+
+    def __init__(self,window,settings=utils.SNAP_DEFAULT_JSONSETTING,theme=utils.DEFAULT_THEME,context=utils.SNAP_DEFAULT_JSONCONTEXT,rg=pygame.sprite.RenderUpdates(),*groups):
+        
+        super().__init__(*groups)
+
+        self.__settings__ = self.__init_snap_settings__(settings)
+        self.__context__ = self.__init_snap_context__(context)
+        self.__theme__ = self.__init_theme__(theme)
+        self.__win__ = window
+        self.__win_w__,self.__win_h__ = window.get_size()
+        self.__width__ = self.settings().get_dimensions().width
+        self.__height__ = self.settings().get_dimensions().height
+        self.__rg__ = rg
+        self.__olpos__ = (0,0) # Outline position (x,y)
+        self.__direct__ = self.settings().get_start_direction()
+        self.__hudparts__ = dict()
+        self.__hudpartsprites__ = dict()
+
+        self.update() # NOTE: Initial call to update() to draw ui element
+        self.__rg__.add(self)
+
+    def __init_outline__(self,*pos) -> pygame.Surface:
+        ret = pygame.Surface((0,0))
+        if self.__olpos__ == (0,0):
+            self.__olpos__ = (
+                self.__win_w__-self.settings().get_buffer_dimensions().width,
+                self.__win_h__-(self.__win_h__-self.settings().get_buffer_dimensions().height)
+            )
+
+        if self.__direct__ == utils.SnapType.Closed:
+            self.__height__ = self.settings().get_dimensions().height
+            self.__set_olpos__(((self.__win_w__-self.settings().get_buffer_dimensions().width),self.__olpos__[1]))
+        else:
+            self.__height__ = self.settings().get_dimensions().height
+            self.__set_olpos__(((self.__win_w__-self.__width__),self.__olpos__[1]))
+            
+
+        ret = pygame.Surface((self.__width__,self.__height__))
+        ret.fill(self.theme().get_colors().outline)
+        return ret
+    
+    def __init_snap_button__(self,*pos) -> pygame.Surface:
+
+        self.__snapbutton_pos__ = (
+            self.__olpos__[0],
+            self.__olpos__[1]
+        )
+
+        wh = (
+            self.settings().get_button_dimensions().width-self.settings().get_button_buffer(),
+            self.settings().get_button_dimensions().height-self.settings().get_button_buffer()
+        )
+        ret = pygame.Surface(wh)
+        ret.fill(self.theme().get_colors().default)
+        return ret
+
+    def __init_snap_title__(self) -> pygame.Surface:
+
+        wh = (
+            self.settings().get_title_dimensions().width,
+            self.settings().get_title_dimensions().height
+        )
+        ret = pygame.Surface(wh)
+        ret.fill(self.theme().get_colors().default)
+        
+        font = pygame.font.Font(None,self.settings().get_title_font().size)
+        font.set_bold(self.settings().get_title_font().setbold)
+        title_txt = font.render(self.context().get_title(),True,self.theme().get_colors().texttitle)
+        ret.blit(title_txt,title_txt.get_rect(
+            center=(
+                ret.get_width() // 2,
+                ret.get_height() // 2
+            )
+        ))
+
+        return ret
+
+    def __init_arrow__(self,hover) -> pygame.Rect:
+        """ SnapHUD main button arrow for 'Closed/Open' state of SnapType """
+        
+        if self.__direct__ == utils.SnapType.Closed:
+            cords = self.settings().get_button_closed().cords.tricords
+            line_cords = self.settings().get_button_closed().cords.linecords
+        else:
+            cords = self.settings().get_button_open().cords.tricords
+            line_cords = self.settings().get_button_open().cords.linecords
+
+        if hover:
+            clr = self.theme().get_colors().buttonhovertext
+        else:
+            clr = self.theme().get_colors().texttitle
+
+        pygame.draw.polygon(
+            self.__snapbutton__,
+            clr,
+            cords,
+            self.settings().get_button_line_width()
+        )
+
+        pygame.draw.polygon(
+            self.__snapbutton__,
+            clr,
+            line_cords,
+            self.settings().get_button_line_width()
+        )
+    
+    def __init_snap_settings__(self,settings) -> utils.SnapHUDSettings:
+        return utils.SnapHUDSettings(settings)
+    def settings(self) -> utils.SnapHUDSettings:
+        return self.__settings__
+    def __init_snap_context__(self,context) -> utils.SnapHUDContext:
+        return utils.SnapHUDContext(context)
+    def context(self) -> utils.SnapHUDContext:
+        return self.__context__
+
+    def __init_theme__(self,theme) -> utils.ElementTheme:
+        if globaltheme() != None:
+            theme = globaltheme()
+        return utils.ElementTheme(theme)
+    
+    def theme(self) -> utils.ElementTheme:
+        return self.__theme__
+
+    def __set_direct__(self):
+        if self.__direct__ == utils.SnapType.Closed:
+            self.__direct__ = utils.SnapType.Open
+        else:
+            self.__direct__ = utils.SnapType.Closed
+
+    def __set_olpos__(self,pos):
+        self.__olpos__ = pos
+
+    def __get_parts__(self) -> list:
+        """ get parts and render as part of SnapHUD.: """
+        spa = list()
+        
+        for p in self.context().get_parts():
+            part = self.context().get_part(p)
+            if self.__hudparts__.__contains__(part.id):
+                obj = self.__hudparts__[part.id]
+                obj.init(self.settings(),self.theme(),self.context(),p)
+            else:
+                obj = eval("%s()" % part.type)
+                obj.init(self.settings(),self.theme(),self.context(),p)
+                self.__hudparts__[part.id] = obj
+            spa.append(obj)
+        return spa
+            
+            
+    def update(self):
+        """ function that draws SnapHUD element, including called for check of hover collide. """
+        self.__olsurf__ = self.__init_outline__() # Outline pygame.Surface
+        
+        self.image = self.__olsurf__
+        self.__snapbutton__ = self.__init_snap_button__()
+        self.rect = pygame.Rect((self.__olpos__+(self.__width__,self.__height__)))
+        hover = self.rect.collidepoint(pygame.mouse.get_pos())
+        self.__init_arrow__(hover)
+        
+        self.image.blit(self.__snapbutton__,self.__snapbutton__.get_rect(
+            topleft=(
+                self.__snapbutton__.get_width()-(self.__snapbutton__.get_width()-(self.settings().get_button_buffer()//2)),
+                self.__snapbutton__.get_height()-(self.__snapbutton__.get_height()-(self.settings().get_button_buffer()//2))
+            )
+        ))
+
+        self.__snaptitle__ = self.__init_snap_title__()
+        self.image.blit(self.__snaptitle__,self.__snaptitle__.get_rect(
+            topleft=(
+                (self.__snaptitle__.get_width()-(self.__snaptitle__.get_width()-1)+self.settings().get_button_dimensions().width),
+                self.__snaptitle__.get_height()-(self.__snaptitle__.get_height()) # TODO Remove hardcoded values
+            )
+        ))
+
+        # NOTE|TODO: Finalize and move to own bound function. For now reside in main update() for now.
+        parts = self.__get_parts__()
+        buff = 0
+        npos = (
+                    self.__olpos__[0]+self.settings().get_buffer_dimensions().width,
+                    self.__olpos__[1]+self.settings().get_dimensions().height+self.settings().get_button_buffer()+buff
+                )
+        ix=2
+        i=1
+        for sp in parts:
+
+            if self.__hudpartsprites__.__contains__(sp):
+                s = self.__hudpartsprites__[sp]
+            else:
+                s = pygame.sprite.Sprite(self.__rg__)
+            
+            s.image = sp.get_part()
+            s.rect = pygame.Rect(npos+(self.__width__,self.__height__))
+
+            self.__hudpartsprites__[sp] = s
+
+            buff += self.settings().get_dimensions().height
+            npos = (
+                    self.__olpos__[0]+self.settings().get_buffer_dimensions().width,
+                    (self.__olpos__[1]+self.settings().get_dimensions().height+(self.settings().get_button_buffer()*ix)+buff+(self.settings().get_part_title_dimensions().height*i))
+                )
+            ix += 1
+            i+=1
+
+        self.__rg__.draw(self.__win__)
+        pygame.display.flip()
+
+    def clicked(self) -> bool:
+        """ clicked function used to check to see if user has 'clicked' to expand SnapHUD. Returns True if so, False if not. """        
+        ret = False
+        if self.rect.collidepoint(pygame.mouse.get_pos()):
+            ret = True
+            if self.__direct__ == utils.SnapType.Closed:
+                self.__set_olpos__(((self.__win_w__-self.__width__),self.__olpos__[1]))
+            else:
+                self.__set_olpos__(((self.__win_w__-self.settings().get_buffer_dimensions().width),self.__olpos__[1]))
+            self.__set_direct__()
+            self.update()
+        return ret
+
+# NOTE:
+# ALL CLASSES BELOW HERE ARE IN BETA DEVELOPMENT
+
+class __EventTopicHUDPartInfo__(object):
+    """ IN DEVELOPMENT """
+    
+    def __init__(self) -> None:
+        
+        # NOTE: Gobal instance allowed once, and used throughout game instance.:
+        if globalcontext(self.__get_typestr__(self)) != None:
+            return globalcontext(self.__get_typestr__(self))
+        
+        self.__infodict__ = dict()
+        globalcontext(self.__get_typestr__(self),self) 
+    
+    def partinfo(self,k,v=None):
+        if v != None:
+            self.__set_info__(k,v)
+        return self.__get_info__(k)
+
+    def __get_typestr__(self,o):
+        return ("%s" % type(o))
+    def __get_info__(self,k):
+        return self.__value__(k)
+    def __set_info__(self,k,v=None):
+        self.__value__(k,v)
+
+    def __value__(self,k,v=None):
+        if not self.__infodict__.__contains__(k):
+            self.__infodict__[k]=v
+        if v != None:
+            self.__infodict__[k]=v
+        return self.__infodict__[k]
+
+class __EventTopicHUD__(pygame.sprite.Sprite):
+    """ CLASS IN DEVELOPMENT """
+
+    def __init__(self,window,settings=utils.SNAP_DEFAULT_JSONSETTING,theme=utils.DEFAULT_THEME,context=utils.SNAP_DEFAULT_JSONCONTEXT,rg=pygame.sprite.RenderUpdates()):
+        
+        super().__init__(rg)
+
+        self.__window__ = window
+        self.__settings__ = self.__init_settings__(settings)
+        self.__theme__ = self.__init_theme__(theme)
+        self.__context__ = self.__init_context__(context)
+
+    def window(self):
+        return self.__window__
+    def __init_settings__(self,settings) -> utils.EventTopicHUDSettings:
+        return utils.EventTopicHUDSettings(settings)
+    def settings(self) -> utils.EventTopicHUDSettings:
+        return self.__settings__
+    def __init_context__(self,context) -> utils.EventTopicHUDContext:
+        return utils.EventTopicHUDContext(context)
+    def context(self) -> utils.EventTopicHUDContext:
+        return self.__context__
+    def __init_theme__(self,theme) -> utils.ElementTheme:
+        if globaltheme() != None:
+            theme = globaltheme()
+        return utils.ElementTheme(theme)
+    def theme(self) -> utils.ElementTheme:
+        return self.__theme__
