@@ -5,6 +5,8 @@ license found @: PyGames-pyguix/LICENSE (Apache License Version 2.0 Janurary 200
 # demo details:
 A quick demo to see all current active pyguix.ui.elements in action can be found in the root for pyguix folder, named __ui_elements_demo_all1.py__ 
 
+Futher you can find an introduction article for this project on medium, located here: <a href="https://darth-data410.medium.com/how-to-easily-create-pygame-user-interface-and-heads-up-display-elements-3b1bf424a2c8">How-To: Easily Create PyGame User Interface and Heads Up Display Elements</a>
+
 # pyguix.ui.elements.MessageBox:
 1. pyguix.ui.elements.MessageBox(pygame.sprite.Sprite) pygame message box user interface class. 
     
