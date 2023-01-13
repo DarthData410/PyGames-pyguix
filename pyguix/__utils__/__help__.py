@@ -27,6 +27,8 @@ import pyguix.ui.settings as st
 # Constants:
 DEFAULT_THEME='default.json'
 DEFAULT_ENCODING='utf-8' 
+ALIGNLEFT='Left'
+ALIGNRIGHT='Right'
 # DIMS:
 DC_DIMS_WIDTH="width"
 DC_DIMS_HEIGHT="height"
@@ -57,6 +59,9 @@ SNAP_DEFAULT_JSONCONTEXT='SnapHUD_default.json'
 EVT_TOP='EventTopicHUD'
 EVT_TOP_DEFAULT_JSONSETTING='EventTopicHUD.json'
 EVT_TOP_DEFAULT_JSONCONTEXT='EventTopicHUD_default.json'
+EVT_TOP_HP_VALUE='EventTopicHUDPartValue'
+EVT_TOP_HP_IMAGE='EventTopicHUDPartImage'
+EVT_TOP_HP_IMAGETEXT='EventTopicHUDPartImageText'
 #global_cache:
 POPUP_ACT="cat"
 GLB_THEME="glbt"
@@ -64,6 +69,8 @@ GLB_THEME="glbt"
 # Enums:
 PopupMenuItemType = enum.IntEnum('PopupMenuItemType','Action Separator')
 SnapType = enum.IntEnum('SnapType', 'Closed Open Collasped Expanded')
+EventTopicType = enum.IntEnum('EventTopicType', 'Closed Open Collasped Expanded')
+EvtTopHUDPartType = enum.IntEnum('EvtTopHUDPartType', 'Value Image ImageText NONE')
 
 # Dataclasses:
 # Base dataclasses:
@@ -327,14 +334,40 @@ class EventTopicHUDPart:
     id: str
     title: str
     function: str
+    type: EvtTopHUDPartType
 
-    def new(id,v):
-        ret = SnapHUDPart(
-            id=id,
-            title=v["title"],
-            function=v["function"]
-        )
+    def get_type(v) -> EvtTopHUDPartType:
+        ret = EvtTopHUDPartType.NONE
+        vc = str(v["type"])
+        if vc == EVT_TOP_HP_VALUE: ret = EvtTopHUDPartType.Value
+        elif vc == EVT_TOP_HP_IMAGE: ret = EvtTopHUDPartType.Image
+        elif vc == EVT_TOP_HP_IMAGETEXT: ret = EvtTopHUDPartType.ImageText
         return ret
+
+    def new(id,v):    
+        return EventTopicHUDPart(
+            id=id,
+            title=str(v["title"]),
+            function=str(v["function"]),
+            type=EventTopicHUDPart.get_type(v)
+        )
+
+@dc.dataclass
+class EventTopicHUDDeco:
+    height: int
+    buffer_percentage: float
+    base_percentage: float
+    title_percentage: float
+    subtitle_percentage: float
+
+    def new(v):
+        return EventTopicHUDDeco(
+            height=int(v["height"]),
+            buffer_percentage=float(v["buffer_percentage"]),
+            base_percentage=float(v["base_percentage"]),
+            title_percentage=float(v["title_percentage"]),
+            subtitle_percentage=float(v["subtitle_percentage"])
+        )
 
 # Classes:
 class jsonfile:
@@ -574,6 +607,7 @@ class SnapHUDSettings(settings):
         self.__align__ = self.__shud__.get("alignment")
         self.__buff__ = self.__align__.get("buffer")
         self.__buff_dims__ = dimensions.new(self.__buff__.get("dimensions"))
+        self.__buff_buff__ = self.__buff__.get("buffer")
         
     def __is_valid__(self) -> bool:
         """ Override version of is_valid. """
@@ -625,6 +659,8 @@ class SnapHUDSettings(settings):
         return self.__align__
     def get_buffer_dimensions(self) -> dimensions:
         return self.__buff_dims__
+    def get_buff_buffer(self):
+        return self.__buff_buff__
     def get_start_direction(self) -> SnapType:
         try:
             ret = SnapType.__getitem__(self.get_variables().get("start_direction"))
@@ -643,11 +679,10 @@ class EventTopicHUDSettings(settings):
         
         self.__ethud__ = self.get_dict().get(EVT_TOP)
         self.__vars__ = self.__ethud__.get("variables")
+        self.__align__ = self.__vars__.get("alignment")
+        self.__align_buff__ = self.__align__.get("buffer")
         self.__top__ = self.__ethud__.get("topic")
-        self.__top_dims__ = dimensions.new(self.__top__.get("dimensions"))
-        self.__top_font__ = font.new(self.__top__.get("font"))
         self.__val__ = self.__ethud__.get("value")
-        self.__val_dims__ = dimensions.new(self.__val__.get("dimensions"))
         self.__val_font__ = font.new(self.__val__.get("font"))
     
     def __is_valid__(self) -> bool:
@@ -659,18 +694,40 @@ class EventTopicHUDSettings(settings):
         ret = ret and self.__is_validitem__(self.get_dict().get(EVT_TOP),"value")
         return ret
     
+    def get_variables(self) -> dict:
+        return self.__vars__
     def get_start_direction(self):
-        return self.__vars__.get("start_direction")
-    def get_start_time(self):
-        return self.__vars__.get("start_time")
+        return self.get_variables().get("start_direction")
+    def get_seconds_alive(self):
+        return self.get_variables().get("seconds_alive")
+    def get_alignment(self) -> dict:
+        return self.__align__
+    def get_align_side(self):
+        return self.get_alignment().get("side")
+    def get_align_dimensions(self) -> dimensions:
+        return dimensions.new(self.get_alignment().get("dimensions"))
+    def get_align_buffer(self) -> dict:
+        return self.__align_buff__
+    def get_align_buff_dimensions(self) -> dimensions:
+        return dimensions.new(self.get_align_buffer().get("dimensions"))
+    def get_align_buff_outline_buffer(self):
+        return self.get_align_buffer().get("outline_buffer")
+    def get_align_buff_buffer(self):
+        return self.get_align_buffer().get("buffer")
+    def get_topic(self) -> dict:
+        return self.__top__
+    def get_topic_deco(self) -> EventTopicHUDDeco:
+        return EventTopicHUDDeco.new(self.get_topic().get("deco"))
     def get_topic_dimensions(self) -> dimensions:
-        return self.__top_dims__
+        return dimensions.new(self.get_topic().get("dimensions"))
     def get_topic_font(self) -> font:
-        return self.__top_font__
+        return font.new(self.get_topic().get("font"))
+    def get_value(self) -> dict:
+        return self.__val__
     def get_value_dimensions(self) -> dimensions:
-        return self.__val_dims__
+        return dimensions.new(self.get_value().get("dimensions"))
     def get_value_font(self) -> font:
-        return self.__val_font__
+        return font.new(self.get_value().get("font"))
 
 class EventTopicHUDContext(context):
     
@@ -684,7 +741,7 @@ class EventTopicHUDContext(context):
         self.__pmd__ = self.get_dict().get(EVT_TOP)
         self.__dets__ = self.__pmd__.get("details")
         self.__parts__ = self.__pmd__.get("parts")
-        self.__paa__ = []
+        self.__paa__ = list()
         for p in self.__parts__.items():
             self.__paa__.append(EventTopicHUDPart.new(p[0],p[1]))
 
@@ -699,7 +756,7 @@ class EventTopicHUDContext(context):
         return self.__dets__
     def get_infoclass(self):
         return self.get_details().get("infoclass")
-    def get_parts(self):
+    def get_parts(self) -> list:
         return self.__paa__
     def get_part(self,p) -> EventTopicHUDPart:
         return p

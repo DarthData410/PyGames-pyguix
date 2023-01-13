@@ -722,10 +722,11 @@ class PopupMenu(pygame.sprite.Sprite):
         self.pum_pos = (0,0)
         self.isvalid = True
 
-        if type(rg) == type(pygame.sprite.RenderUpdates()):
-            self.rg = rg
+        if rg == None:
+            self.isvalid = False
+            return
         else:
-            self.rg = pygame.sprite.RenderUpdates()
+            self.rg = rg
 
         # determine if ANY object class was clicked on.:
         # NOTE: Get class for popup mouse pos collide context of:
@@ -774,7 +775,6 @@ class PopupMenu(pygame.sprite.Sprite):
                     tos_pma = reg_pmas[reg_tc2pma[tos]] 
                     self.tpma = tos_pma
                     ret = tos_pma.get_context_name()
-                    #break
 
         if ret == None:
             ret = utils.POPUP_DEFAULT_JSONCONTEXT
@@ -782,11 +782,12 @@ class PopupMenu(pygame.sprite.Sprite):
         return ret
     
     def __get_contextof__(self): 
-        # NOTE: Based on passed in RenderUpdates group, grab Sprite (if any) that collide with pygame.mouse.get_pos()
+        # NOTE: Based on passed in group, grab Sprite (if any) that collide with pygame.mouse.get_pos()
         ret = None
         for s in self.rg:
             if s.rect.collidepoint(pygame.mouse.get_pos()):
                 ret = s
+                break
         return ret
 
     def __init_dimensions__(self,window):
@@ -1084,7 +1085,7 @@ class SnapHUDPartText(SnapHUDPart):
     def __init__part__(self) -> pygame.Surface:
         """ build out simple text SnapHUDPart. """
         wh = (
-            self.settings().get_title_dimensions().width,
+            self.settings().get_part_title_dimensions().width,
             self.settings().get_part_title_dimensions().height+self.settings().get_part_body_dimensions().height
         )
         ret = pygame.Surface(wh)
@@ -1299,7 +1300,7 @@ class SnapHUD(pygame.sprite.Sprite):
         self.image.blit(self.__snaptitle__,self.__snaptitle__.get_rect(
             topleft=(
                 (self.__snaptitle__.get_width()-(self.__snaptitle__.get_width()-1)+self.settings().get_button_dimensions().width),
-                self.__snaptitle__.get_height()-(self.__snaptitle__.get_height()) # TODO Remove hardcoded values
+                self.__snaptitle__.get_height()-(self.__snaptitle__.get_height()) 
             )
         ))
 
@@ -1308,7 +1309,7 @@ class SnapHUD(pygame.sprite.Sprite):
         buff = 0
         npos = (
                     self.__olpos__[0]+self.settings().get_buffer_dimensions().width,
-                    self.__olpos__[1]+self.settings().get_dimensions().height+self.settings().get_button_buffer()+buff
+                    self.__olpos__[1]+self.settings().get_dimensions().height+self.settings().get_buff_buffer()+buff
                 )
         ix=2
         i=1
@@ -1327,7 +1328,7 @@ class SnapHUD(pygame.sprite.Sprite):
             buff += self.settings().get_dimensions().height
             npos = (
                     self.__olpos__[0]+self.settings().get_buffer_dimensions().width,
-                    (self.__olpos__[1]+self.settings().get_dimensions().height+(self.settings().get_button_buffer()*ix)+buff+(self.settings().get_part_title_dimensions().height*i))
+                    (self.__olpos__[1]+self.settings().get_dimensions().height+(self.settings().get_buff_buffer()*ix)+buff+(self.settings().get_part_title_dimensions().height*i))
                 )
             ix += 1
             i+=1
@@ -1382,20 +1383,226 @@ class __EventTopicHUDPartInfo__(object):
             self.__infodict__[k]=v
         return self.__infodict__[k]
 
-class __EventTopicHUD__(pygame.sprite.Sprite):
-    """ CLASS IN DEVELOPMENT """
+class __EventTopicHUDPartBase__(pygame.sprite.Sprite):
 
-    def __init__(self,window,settings=utils.SNAP_DEFAULT_JSONSETTING,theme=utils.DEFAULT_THEME,context=utils.SNAP_DEFAULT_JSONCONTEXT,rg=pygame.sprite.RenderUpdates()):
+    def __init__(self,part) -> None:
+
+        self.__part__ = part
+        self.__olpos__ = self.get_part().__olpos__
+        super().__init__(self.get_part().sprite_group())
+    
+    def get_part(self):
+        return self.__part__
+    def settings(self) -> utils.EventTopicHUDSettings:
+        return self.get_part().settings()
+    def context(self) -> utils.EventTopicHUDContext:
+        return self.get_part().context()
+    def theme(self) -> utils.ElementTheme:
+        return self.get_part().theme()
+
+class __EventTopicHUDPartTitle__(__EventTopicHUDPartBase__):
+
+    def __init__(self,part) -> None:
+        
+        super().__init__(part)
+        
+        self.__top_pos__ = (0,0)
+    
+    def get_top_pos(self):
+        return self.__top_pos__
+    def __initialize__(self):
+        
+        # TOPIC:
+        rec = pygame.Surface((self.settings().get_topic_dimensions().width,self.settings().get_topic_dimensions().height))
+        rec.fill(self.theme().get_colors().default)
+        
+        # ------------------------------------------------------------------------
+        # NOTE Start Topic deco:
+        deco_rec_base = pygame.Surface(
+            (
+                self.settings().get_topic_dimensions().width - (
+                    self.settings().get_topic_dimensions().width * self.settings().get_topic_deco().buffer_percentage
+                ),
+                self.settings().get_topic_deco().height
+            )
+        )
+        deco_rec_base.fill(self.theme().get_colors().text)
+
+        deco_rec_title = pygame.Surface(
+            (
+                deco_rec_base.get_width() - (
+                    deco_rec_base.get_width() * self.settings().get_topic_deco().base_percentage
+                ),
+                self.settings().get_topic_deco().height
+            )
+        )
+        deco_rec_title.fill(self.theme().get_colors().texttitle)
+
+        deco_rec_sub_title = pygame.Surface(
+            (
+                deco_rec_title.get_width() - (
+                    deco_rec_title.get_width() * self.settings().get_topic_deco().title_percentage
+                ),
+                self.settings().get_topic_deco().height
+            )
+        )
+        deco_rec_sub_title.fill(self.theme().get_colors().textsubtitle)
+
+        deco_rec_outline = pygame.Surface(
+            (
+                deco_rec_sub_title.get_width() - (
+                    deco_rec_sub_title.get_width() * self.settings().get_topic_deco().subtitle_percentage
+                ),
+                self.settings().get_topic_deco().height
+            )
+        )
+        deco_rec_outline.fill(self.theme().get_colors().outline)
+
+        deco_rec_sub_title.blit(deco_rec_outline,deco_rec_outline.get_rect())
+        deco_rec_title.blit(deco_rec_sub_title,deco_rec_sub_title.get_rect())
+        deco_rec_base.blit(deco_rec_title,deco_rec_title.get_rect())
+        rec.blit(deco_rec_base,deco_rec_base.get_rect())
+        # NOTE End Topic deco
+        # ------------------------------------------------------------------------
+
+        fnt = pygame.font.Font(None,self.settings().get_topic_font().size)
+        fnt.set_bold(self.settings().get_topic_font().setbold)
+        txt_surf = fnt.render("Test Topic",True,self.theme().get_colors().texttitle)
+        rec.blit(txt_surf,txt_surf.get_rect(
+            center=(
+                rec.get_width() // 2,
+                rec.get_height() // 2
+            )
+        ))
+        
+        self.image = rec
+        
+        # TODO Finalize moving to base bound function:
+        top_pos = self.__olpos__
+        top_pos = (
+            (
+                top_pos[0]+self.settings().get_align_dimensions().width+self.settings().get_align_buff_dimensions().width),
+                (top_pos[1])
+        )
+
+        self.__top_pos__ = top_pos
+        self.rect = pygame.Rect((top_pos+(self.settings().get_topic_dimensions().width,self.settings().get_topic_dimensions().height)))
+
+    def update(self):
+        self.__initialize__()
+
+class __EventTopicHUDPartValue__(__EventTopicHUDPartBase__):
+
+    def __init__(self,part) -> None:
+        
+        super().__init__(part)
+    
+    def __initialize__(self):
+        top_pos = self.__olpos__
+        top_pos = ((top_pos[0]+self.settings().get_align_dimensions().width+self.settings().get_align_buff_dimensions().width),(top_pos[1]))
+
+        # VALUE:
+        rec2 = pygame.Surface((self.settings().get_value_dimensions().width,self.settings().get_value_dimensions().height))
+        rec2.fill(self.theme().get_colors().outline)
+        
+        rec_txt_area = pygame.Surface(
+                (
+                    self.settings().get_value_dimensions().width - self.settings().get_align_buff_outline_buffer(),
+                    self.settings().get_value_dimensions().height - self.settings().get_align_buff_outline_buffer()
+            )
+        )
+        rec_txt_area.fill(self.theme().get_colors().default)
+
+        
+        fnt2 = pygame.font.Font(None,self.settings().get_value_font().size)
+        fnt2.set_bold(self.settings().get_value_font().setbold)
+        
+        #-----------------------------
+        # NOTE: TEST REFLECTION VALUE:
+        func = getattr(globalcontext(self.context().get_infoclass()),"ex_one")
+        txt_value = str(func())
+        #-----------------------------
+        
+        txt_surf2 = fnt2.render(txt_value,True,self.theme().get_colors().text)
+        rec_txt_area.blit(txt_surf2,txt_surf2.get_rect(
+            center=(
+                rec_txt_area.get_width() // 2,
+                rec_txt_area.get_height() // 2
+            )
+        ))
+
+        rec2.blit(rec_txt_area,rec_txt_area.get_rect(
+            center=(
+                rec2.get_width() // 2,
+                rec2.get_height() // 2
+            )
+        ))
+        
+        self.image = rec2
+        val_pos = top_pos
+        val_pos = ((val_pos[0]+self.settings().get_topic_dimensions().width+self.settings().get_align_buff_dimensions().width),(val_pos[1]))
+        self.rect = pygame.Rect((val_pos+(self.settings().get_value_dimensions().width,self.settings().get_value_dimensions().height)))
+
+    def update(self):
+        self.__initialize__()
+
+class __EventTopicHUDPart__(object):
+
+    def __init__(self,window,rg,theme,context,settings,olpos) -> None:
+        
+        self.__window__ = window
+        self.__rg__ = rg
+        self.__theme__ = theme
+        self.__context__ = context
+        self.__settings__ = settings
+        self.__olpos__ = olpos
+        self.__part_title__ = self.__init_part_title__()
+        self.__part_value__ = self.__init_part_value__()
+    
+    def window(self):
+        return self.__window__
+    def sprite_group(self):
+        return self.__rg__
+    def settings(self) -> utils.EventTopicHUDSettings:
+        return self.__settings__
+    def context(self) -> utils.EventTopicHUDContext:
+        return self.__context__
+    def theme(self) -> utils.ElementTheme:
+        return self.__theme__
+    def __init_part_title__(self) -> __EventTopicHUDPartTitle__:
+        return __EventTopicHUDPartTitle__(self)
+    def part_title(self) -> __EventTopicHUDPartTitle__:
+        return self.__part_title__
+    def __init_part_value__(self) -> __EventTopicHUDPartValue__:
+        return __EventTopicHUDPartValue__(self)
+    def part_value(self) -> __EventTopicHUDPartValue__:
+        return self.__part_value__
+    def update(self):
+        self.part_title().update()
+        self.part_value().update()
+
+class __EventTopicHUD__(pygame.sprite.Sprite):
+    """ IN DEVELOPMENT """
+
+    def __init__(self,window,settings=utils.EVT_TOP_DEFAULT_JSONSETTING,theme=utils.DEFAULT_THEME,context=utils.EVT_TOP_DEFAULT_JSONCONTEXT,rg=pygame.sprite.RenderUpdates()):
         
         super().__init__(rg)
 
         self.__window__ = window
+        self.__rg__ = rg
+        self.__olpos__ = (0,0)
+        self.__win_w__,self.__win_h__ = self.__window__.get_size()
         self.__settings__ = self.__init_settings__(settings)
         self.__theme__ = self.__init_theme__(theme)
         self.__context__ = self.__init_context__(context)
+        self.__direct__ = utils.EventTopicType.Closed
+        self.__hud_part__ = None
+        self.update()
 
     def window(self):
         return self.__window__
+    def sprite_group(self):
+        return self.__rg__
     def __init_settings__(self,settings) -> utils.EventTopicHUDSettings:
         return utils.EventTopicHUDSettings(settings)
     def settings(self) -> utils.EventTopicHUDSettings:
@@ -1410,3 +1617,44 @@ class __EventTopicHUD__(pygame.sprite.Sprite):
         return utils.ElementTheme(theme)
     def theme(self) -> utils.ElementTheme:
         return self.__theme__
+    def __set_olpos__(self,pos):
+        self.__olpos__ = pos
+    def __init_outline__(self,*pos) -> pygame.Surface:
+
+        if self.__olpos__ == (0,0):
+            
+            if self.settings().get_align_side()==utils.ALIGNLEFT:
+                self.__olpos__ = (
+                    0,
+                    self.__win_h__-(self.__win_h__-self.settings().get_align_buff_dimensions().height)
+                )
+            else: # utils.ALIGNRIGHT:
+                self.__olpos__ = (
+                    self.__win_w__-self.settings().get_align_dimensions().width,
+                    self.__win_h__-(self.__win_h__-self.settings().get_align_buff_dimensions().height)
+                )
+
+        ret = pygame.Surface((self.settings().get_align_dimensions().width,self.settings().get_align_dimensions().height))
+        ret.fill(self.theme().get_colors().outline)
+        return ret
+    
+    def __render_topic_part__(self):
+        
+        self.__hud_part__ = __EventTopicHUDPart__(
+            self.window(),
+            self.sprite_group(),
+            self.theme(),
+            self.context(),
+            self.settings(),
+            self.__olpos__
+        )
+        self.__hud_part__.update()
+        
+    def update(self):
+        self.__olsurf__ = self.__init_outline__() # Outline pygame.Surface
+        
+        self.image = self.__olsurf__
+        self.rect = pygame.Rect((self.__olpos__+(self.settings().get_align_dimensions().width,self.settings().get_align_dimensions().height)))
+        self.__render_topic_part__()
+
+

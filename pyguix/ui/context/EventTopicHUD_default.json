@@ -1,18 +1,25 @@
 {
-    "SnapHUD": {
+    "EventTopicHUD": {
         "details": {
             "infoclass": "<class '__main__.EventTopicHUDPartInfoExample'>"
         },
         "parts":{
             "example_one":{
-                "title": "Example Update One",
-                "function": "ex_one"
+                "title": "Example Update - Part Value",
+                "function": "ex_one",
+                "type": "EventTopicHUDPartValue"
             },
             "example_two":{
-                "title": "Example Update Two",
-                "function": "ex_two"
+                "title": "Example Update - Image & Text Pair",
+                "function": "ex_two",
+                "type": "EventTopicHUDPartImageText"
+            },
+            "example_three":{
+                "title": "Example Update - Image",
+                "function": "ex_three",
+                "type": "EventTopicHUDPartImage"
             }
         },
-        "notes": "infoclass sets target for call PartInfoExample functions. "
+        "notes": "*IN DEVELOPMENT - NOT ACTIVE* infoclass sets target for call PartInfoExample functions. "
     }
 }

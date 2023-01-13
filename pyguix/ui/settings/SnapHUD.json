@@ -2,10 +2,10 @@
     "SnapHUD":
     {
         "variables":{
-            "start_direction": "Closed"
+            "start_direction": "Open"
         },
         "dimensions":{
-            "width": 150,
+            "width": 155,
             "height": 30,
             "radius": 0
         },
@@ -74,7 +74,8 @@
                     "height": 20,
                     "radius": 0
                 },
-                "outline_buffer": 8
+                "outline_buffer": 8,
+                "buffer": 4
             }
         },
         "notes": "Default SnapHUD settings: alignment.side is either 'Right/Left', start_direction: 'Closed/Open'"
