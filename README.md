@@ -1,5 +1,5 @@
 # PyGames-pyguix (PYGame User Interface eXtreme (PYGUIX))
-By: J. Brandon George | darth.data410@gmail.com | twitter: @PyFryDay | medium.com: https://darth-data410.medium.com/
+By: J. Brandon George | darth.data410@gmail.com | twitter: @PyFryDay | medium.com: https://darth-data410.medium.com/ | youtube: https://www.youtube.com/@pyfryday
 license found @: PyGames-pyguix/LICENSE (Apache License Version 2.0 Janurary 2004)
 
 # demo details:
