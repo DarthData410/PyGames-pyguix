@@ -55,13 +55,9 @@ POPUP_ISSUES_MSG='Issues loading supplied JSON PopupMenu context file. Loading d
 SNAP='SnapHUD'
 SNAP_DEFAULT_JSONSETTING='SnapHUD.json'
 SNAP_DEFAULT_JSONCONTEXT='SnapHUD_default.json'
-#EventTopicHUD:
-EVT_TOP='EventTopicHUD'
-EVT_TOP_DEFAULT_JSONSETTING='EventTopicHUD.json'
-EVT_TOP_DEFAULT_JSONCONTEXT='EventTopicHUD_default.json'
-EVT_TOP_HP_VALUE='EventTopicHUDPartValue'
-EVT_TOP_HP_IMAGE='EventTopicHUDPartImage'
-EVT_TOP_HP_IMAGETEXT='EventTopicHUDPartImageText'
+# Hamburger
+HAM='Hamburger'
+HAM_DEFAULT_JSONSETTING='Hamburger.json'
 #global_cache:
 POPUP_ACT="cat"
 GLB_THEME="glbt"
@@ -69,8 +65,6 @@ GLB_THEME="glbt"
 # Enums:
 PopupMenuItemType = enum.IntEnum('PopupMenuItemType','Action Separator')
 SnapType = enum.IntEnum('SnapType', 'Closed Open Collasped Expanded')
-EventTopicType = enum.IntEnum('EventTopicType', 'Closed Open Collasped Expanded')
-EvtTopHUDPartType = enum.IntEnum('EvtTopHUDPartType', 'Value Image ImageText NONE')
 
 # Dataclasses:
 # Base dataclasses:
@@ -327,47 +321,6 @@ class PopupMenuItem:
             enabled=bool(v["enabled"])
         )
         return ret
-
-# EventTopicHUD dataclasses:
-@dc.dataclass
-class EventTopicHUDPart:
-    id: str
-    title: str
-    function: str
-    type: EvtTopHUDPartType
-
-    def get_type(v) -> EvtTopHUDPartType:
-        ret = EvtTopHUDPartType.NONE
-        vc = str(v["type"])
-        if vc == EVT_TOP_HP_VALUE: ret = EvtTopHUDPartType.Value
-        elif vc == EVT_TOP_HP_IMAGE: ret = EvtTopHUDPartType.Image
-        elif vc == EVT_TOP_HP_IMAGETEXT: ret = EvtTopHUDPartType.ImageText
-        return ret
-
-    def new(id,v):    
-        return EventTopicHUDPart(
-            id=id,
-            title=str(v["title"]),
-            function=str(v["function"]),
-            type=EventTopicHUDPart.get_type(v)
-        )
-
-@dc.dataclass
-class EventTopicHUDDeco:
-    height: int
-    buffer_percentage: float
-    base_percentage: float
-    title_percentage: float
-    subtitle_percentage: float
-
-    def new(v):
-        return EventTopicHUDDeco(
-            height=int(v["height"]),
-            buffer_percentage=float(v["buffer_percentage"]),
-            base_percentage=float(v["base_percentage"]),
-            title_percentage=float(v["title_percentage"]),
-            subtitle_percentage=float(v["subtitle_percentage"])
-        )
 
 # Classes:
 class jsonfile:
@@ -668,98 +621,32 @@ class SnapHUDSettings(settings):
         except:
             raise LookupError("Invalid SnapHUD context.json supplied variable.start_direction conversion to SnapType enum value. Check context.json vsupplied varaible. [pyguix.__utils__.__help__.py]")
 
-class EventTopicHUDSettings(settings):
-    
-    def __init__(self, setting_name=EVT_TOP_DEFAULT_JSONSETTING):
+class HamburgerSettings(settings):
+
+    def __init__(self, setting_name=HAM_DEFAULT_JSONSETTING):
         super().__init__(setting_name)
-
+    
         if not self.__is_valid__():
-            print("Invalid EventTopicHUD JSON settings file. Will attempt to load default JSON setting file.")
-            super().__init__(EVT_TOP_DEFAULT_JSONSETTING)
-        
-        self.__ethud__ = self.get_dict().get(EVT_TOP)
-        self.__vars__ = self.__ethud__.get("variables")
-        self.__align__ = self.__vars__.get("alignment")
-        self.__align_buff__ = self.__align__.get("buffer")
-        self.__top__ = self.__ethud__.get("topic")
-        self.__val__ = self.__ethud__.get("value")
-        self.__val_font__ = font.new(self.__val__.get("font"))
-    
+            print("Invalid Hamburger JSON settings file. Will attempt to load default JSON setting file.")
+            super().__init__(HAM_DEFAULT_JSONSETTING)
+
+        self.__ham__ = self.get_dict().get(HAM)
+        self.__vars__ = self.hamburger().get("variables")
+        self.__dims__ = dimensions.new(self.variables().get("dimensions"))
+
     def __is_valid__(self) -> bool:
-        """ Override version of is_valid """
         ret = super().__is_valid__()
-        ret = self.__is_validitem__(self.get_dict(),EVT_TOP)
-        ret = ret and self.__is_validitem__(self.get_dict().get(EVT_TOP),"variables")
-        ret = ret and self.__is_validitem__(self.get_dict().get(EVT_TOP),"topic")
-        ret = ret and self.__is_validitem__(self.get_dict().get(EVT_TOP),"value")
+        ret = self.__is_validitem__(self.get_dict(),HAM)
+        ret = ret and self.__is_validitem__(self.get_dict().get(HAM),"variables")
+        ret = ret and self.__is_validitem__(self.get_dict().get(HAM)["variables"],"dimensions")
         return ret
-    
-    def get_variables(self) -> dict:
+
+    def hamburger(self) -> dict:
+        return self.__ham__
+    def variables(self) -> dict:
         return self.__vars__
-    def get_start_direction(self):
-        return self.get_variables().get("start_direction")
-    def get_seconds_alive(self):
-        return self.get_variables().get("seconds_alive")
-    def get_alignment(self) -> dict:
-        return self.__align__
-    def get_align_side(self):
-        return self.get_alignment().get("side")
-    def get_align_dimensions(self) -> dimensions:
-        return dimensions.new(self.get_alignment().get("dimensions"))
-    def get_align_buffer(self) -> dict:
-        return self.__align_buff__
-    def get_align_buff_dimensions(self) -> dimensions:
-        return dimensions.new(self.get_align_buffer().get("dimensions"))
-    def get_align_buff_outline_buffer(self):
-        return self.get_align_buffer().get("outline_buffer")
-    def get_align_buff_buffer(self):
-        return self.get_align_buffer().get("buffer")
-    def get_topic(self) -> dict:
-        return self.__top__
-    def get_topic_deco(self) -> EventTopicHUDDeco:
-        return EventTopicHUDDeco.new(self.get_topic().get("deco"))
-    def get_topic_dimensions(self) -> dimensions:
-        return dimensions.new(self.get_topic().get("dimensions"))
-    def get_topic_font(self) -> font:
-        return font.new(self.get_topic().get("font"))
-    def get_value(self) -> dict:
-        return self.__val__
-    def get_value_dimensions(self) -> dimensions:
-        return dimensions.new(self.get_value().get("dimensions"))
-    def get_value_font(self) -> font:
-        return font.new(self.get_value().get("font"))
-
-class EventTopicHUDContext(context):
-    
-    def __init__(self,context_name=EVT_TOP_DEFAULT_JSONCONTEXT):
-        super().__init__(context_name)
-
-        if not self.__is_valid__():
-            print("Issues with EventTopicHUD context.json file loading. [pyguix.__utils__.__help__.py]")
-            super().__init__(EVT_TOP_DEFAULT_JSONCONTEXT)
-        
-        self.__pmd__ = self.get_dict().get(EVT_TOP)
-        self.__dets__ = self.__pmd__.get("details")
-        self.__parts__ = self.__pmd__.get("parts")
-        self.__paa__ = list()
-        for p in self.__parts__.items():
-            self.__paa__.append(EventTopicHUDPart.new(p[0],p[1]))
-
-    def __is_valid__(self) -> bool:
-        ret = super().__is_valid__()
-        ret = self.__is_validitem__(self.get_dict(),EVT_TOP)
-        ret = ret and self.__is_validitem__(self.get_dict().get(EVT_TOP),"details")
-        ret = ret and self.__is_validitem__(self.get_dict().get(EVT_TOP),"parts") 
-        return ret
-    
-    def get_details(self) -> dict:
-        return self.__dets__
-    def get_infoclass(self):
-        return self.get_details().get("infoclass")
-    def get_parts(self) -> list:
-        return self.__paa__
-    def get_part(self,p) -> EventTopicHUDPart:
-        return p
+    def dimensions(self) -> dimensions:
+        return self.__dims__
 
 class ElementTheme(theme):
     

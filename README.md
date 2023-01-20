@@ -177,16 +177,14 @@ Futher you can find an introduction article for this project on medium, located 
         7. *IN DEV* EventTopicHUD_default.json -> *IN DEV* 
 
 # pyguix deployment
-7. (NOTE: DEPLOYMENT SECTION AND PIP INSTALL SLATED FOR DEVELOPMENT. CLONE REPO AND USE AS YOU DESIRE AND AT YOUR OWN RISK. REFER TO LICENSE FILE FOR FURTHER DETAILS.) 
+7. (NOTE: CLONE REPO AND USE AS YOU DESIRE AND AT YOUR OWN RISK. REFER TO LICENSE FILE FOR FURTHER DETAILS.) 
 
-# pyguix planned development & notes:
+# pyguix planned development:
 8. Upcoming Development:
     1. UI elements slated for development:
-        1. EventTopicHUD(pygame.sprite.Sprite(s)/Surface(s)) 
-        2. GameOptions(pygame.sprite.Sprite/Surface(s))
-        3. GameScene(pygame.Surface)
-    2. Deployment / install:
-        1. Establish a 'pip install' for pyguix, create and test
-            1. Test for *nix OS
-            2. Test for Win OS
-            3. Test for MacOS
+        1. 'Hamburger' UI Element and Usage
+        2. 'Meatball' UI Element and Usage
+
+# Current Notes:
+9. Right now the focus of development for this project is creating the 'Hamburger' & 'Meatball' UI element code for use in pyames. If you are not familiar with the UI terms 'Hamburger' or 'Meatball', just perform a quick interwebs search and you will understand their place and importance in UI design. 
+    
